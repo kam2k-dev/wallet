@@ -1,20 +1,31 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# 💳 Financial Wallet Analysis App
 
-# Run and deploy your AI Studio app
+![App Status](https://img.shields.io/badge/status-active-brightgreen)
+![UI/UX](https://img.shields.io/badge/UI%2FUX-Clean%20Mobile%20Design-blue)
+![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android-lightgrey)
+![License](https://img.shields.io/badge/license-MIT-orange)
 
-This contains everything you need to run your app locally.
+Aplikasi ini dirancang untuk membantu Anda mengelola keuangan pribadi, memantau pengeluaran per kategori, serta menganalisis tren belanja harian dengan mudah.
 
-View your app in AI Studio: https://ai.studio/apps/0f1ecfbc-8833-4237-90f3-c96966394e40
+---
 
-## Run Locally
+## 🚀 Cara Penggunaan Aplikasi
 
-**Prerequisites:**  Node.js
+### 1. Mengelola Saldo & Navigasi Utama (Dashboard)
+- **Melihat / Menyembunyikan Saldo:** Tekan ikon mata di samping `Main balance` untuk menyembunyikan atau menampilkan nominal saldo Anda.
+- **Transaksi Cepat (Quick Actions):**
+  - `+ Add`: Menambahkan pemasukan atau saldo baru.
+  - `🔀 Move`: Memindahkan saldo antarkategori dompet.
+  - `↗ Send`: Mengirim uang / transfer ke rekening lain.
+  - `... Details`: Melihat rincian akun dompet utama.
+- **Memantau Kategori Dompet:** Tekan salah satu kartu kategori (*Groceries, Transport, Entertainment, Rent & Utilities*) untuk langsung masuk ke rincian kategori tersebut.
 
+### 2. Memantau Detail Dompet per Kategori (Wallet Details)
+- **Mengubah Periode Waktu:** Gunakan navigasi panah di bagian atas (misal: *September, 2025*) untuk melihat pengeluaran pada bulan yang diinginkan.
+- **Membaca Grafik Pengeluaran:** Sentuh titik pada grafik garis untuk melihat detail nominal pengeluaran di tanggal tertentu.
+- **Pencarian Riwayat Transaksi:** Gunakan kolom pencarian di bagian bawah grafik untuk menemukan transaksi spesifik berdasarkan nama merchant atau produk.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### 3. Menganalisis Pengeluaran (Spend Analysis)
+- **Melihat Distribusi Belanja:** Cek bar warna-warni di halaman *Spend Analysis* untuk mengetahui kategori mana yang memakan porsi pengeluaran terbesar.
+- **Rekomendasi Pintar (Smart Banner):** Tinjau kartu saran otomatis untuk mendapatkan tips penghematan atau peringatan anggaran bulanan.
+- **Filter Metode Pembayaran:** Cari dan filter transaksi berdasarkan metode pembayaran yang digunakan (seperti Kartu Visa/Kredit).
