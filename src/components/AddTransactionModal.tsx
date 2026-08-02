@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Category, CategoryId, Transaction } from '../types';
+import { CurrencyCode, getCurrency } from '../utils/currency';
 
 interface AddTransactionModalProps {
   categories: Category[];
   isOpen: boolean;
+  currency?: CurrencyCode;
   onClose: () => void;
   onAddTransaction: (transaction: Omit<Transaction, 'id'>) => void;
 }
@@ -11,6 +13,7 @@ interface AddTransactionModalProps {
 export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   categories,
   isOpen,
+  currency = 'USD',
   onClose,
   onAddTransaction,
 }) => {
@@ -19,7 +22,10 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   const [categoryId, setCategoryId] = useState<CategoryId>('groceries');
   const [type, setType] = useState<'expense' | 'income'>('expense');
   const [paymentMethod, setPaymentMethod] = useState('Card •••• 1234');
-  const [dateStr, setDateStr] = useState('Sep 15, 2025');
+  // Default to today's date (ISO format for <input type="date">)
+  const [rawDate, setRawDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+  const activeCur = getCurrency(currency as CurrencyCode);
 
   if (!isOpen) return null;
 
@@ -29,6 +35,12 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     if (!title.trim() || isNaN(numAmount)) return;
 
     const selectedCategory = categories.find((c) => c.id === categoryId);
+    const parsedDate = rawDate ? new Date(`${rawDate}T00:00:00`) : new Date();
+    const displayDate = parsedDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
 
     onAddTransaction({
       title: title.trim(),
@@ -36,13 +48,14 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       categoryName: selectedCategory?.name || 'Groceries',
       amount: type === 'expense' ? -Math.abs(numAmount) : Math.abs(numAmount),
       paymentMethod,
-      date: dateStr,
-      rawDate: new Date().toISOString().split('T')[0],
+      date: displayDate,
+      rawDate,
     });
 
     // Reset & close
     setTitle('');
     setAmount('');
+    setRawDate(new Date().toISOString().split('T')[0]);
     onClose();
   };
 
@@ -118,7 +131,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
           <div>
             <label className="block text-[12px] font-medium text-[#47464b] mb-1">
-              Amount ($)
+              Amount ({activeCur.symbol})
             </label>
             <input
               type="number"
@@ -179,9 +192,9 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 Date
               </label>
               <input
-                type="text"
-                value={dateStr}
-                onChange={(e) => setDateStr(e.target.value)}
+                type="date"
+                value={rawDate}
+                onChange={(e) => setRawDate(e.target.value)}
                 className="w-full px-3 py-3 bg-[#f1f3ff] rounded-2xl text-[13px] outline-none"
               />
             </div>

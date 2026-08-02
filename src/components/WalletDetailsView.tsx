@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Category, Transaction, CategoryId, ChartPoint } from '../types';
+import { CurrencyCode, formatCurrency } from '../utils/currency';
 
 interface WalletDetailsViewProps {
   category: Category;
   transactions: Transaction[];
+  currency: CurrencyCode;
   onOpenAddModal: () => void;
   onSelectTransaction: (transaction: Transaction) => void;
   onQuickAction: (actionName: string) => void;
@@ -23,6 +25,7 @@ const MOCK_CHART_POINTS: ChartPoint[] = [
 export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
   category,
   transactions,
+  currency,
   onOpenAddModal,
   onSelectTransaction,
   onQuickAction,
@@ -185,7 +188,9 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
               }}
             >
               <div className="flex flex-col items-center">
-                <span className="font-bold text-[13px]">${activePoint.amount.toFixed(2)}</span>
+                <span className="font-bold text-[13px]">
+                  {formatCurrency(activePoint.amount, currency)}
+                </span>
                 <span className="text-[10px] opacity-75">{activePoint.fullDate}</span>
               </div>
             </div>
@@ -269,7 +274,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
                   </div>
                 </div>
                 <p className="font-semibold text-[16px] text-[#141b2b] shrink-0">
-                  ${Math.abs(tx.amount).toFixed(2)}
+                  {formatCurrency(tx.amount, currency)}
                 </p>
               </div>
             ))
@@ -278,33 +283,33 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
       </section>
 
       {/* Floating Bottom Action Bar Pill */}
-      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 glass-pill px-6 py-3 rounded-full flex items-center gap-6 shadow-2xl z-50">
+      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 ios-liquid-glass px-6 py-2.5 rounded-full flex items-center gap-6 shadow-xl z-40">
         <button
           onClick={onOpenAddModal}
-          className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity active:scale-95 duration-200"
+          className="flex items-center gap-2 text-[#141b2b] hover:text-[#007aff] transition-colors active:scale-95 duration-200"
         >
-          <span className="material-symbols-outlined text-[20px]">add</span>
-          <span className="text-[14px] font-medium">Add</span>
+          <span className="material-symbols-outlined text-[20px] text-[#007aff]">add</span>
+          <span className="text-[13px] font-semibold">Add</span>
         </button>
 
-        <div className="w-[1px] h-4 bg-white/20" />
+        <div className="w-[1px] h-4 bg-black/10" />
 
         <button
           onClick={() => onQuickAction('Move Funds')}
-          className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity active:scale-95 duration-200"
+          className="flex items-center gap-2 text-[#141b2b] hover:text-[#007aff] transition-colors active:scale-95 duration-200"
         >
-          <span className="material-symbols-outlined text-[20px]">swap_horiz</span>
-          <span className="text-[14px] font-medium">Move</span>
+          <span className="material-symbols-outlined text-[20px] text-[#007aff]">swap_horiz</span>
+          <span className="text-[13px] font-semibold">Move</span>
         </button>
 
-        <div className="w-[1px] h-4 bg-white/20" />
+        <div className="w-[1px] h-4 bg-black/10" />
 
         <button
           onClick={() => onQuickAction('Send Funds')}
-          className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity active:scale-95 duration-200"
+          className="flex items-center gap-2 text-[#141b2b] hover:text-[#007aff] transition-colors active:scale-95 duration-200"
         >
-          <span className="material-symbols-outlined text-[20px]">send</span>
-          <span className="text-[14px] font-medium">Send</span>
+          <span className="material-symbols-outlined text-[20px] text-[#007aff]">send</span>
+          <span className="text-[13px] font-semibold">Send</span>
         </button>
       </div>
     </main>

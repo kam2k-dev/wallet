@@ -3,9 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ViewTab, CategoryId, Transaction, Category } from './types';
 import { INITIAL_CATEGORIES, INITIAL_TRANSACTIONS } from './data/mockData';
+import { CurrencyCode } from './utils/currency';
+import { fetchLiveRates, convertCurrency, FALLBACK_RATES } from './utils/exchangeRate';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { DashboardView } from './components/DashboardView';
@@ -16,13 +18,48 @@ import { AddTransactionModal } from './components/AddTransactionModal';
 import { TransactionDetailsModal } from './components/TransactionDetailsModal';
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<ViewTab>('analysis'); // Default to Spend Analysis screen from prompt
+  const [currentTab, setCurrentTab] = useState<ViewTab>('dashboard'); // Default to Dashboard (home) screen
   const [selectedCategoryId, setSelectedCategoryId] = useState<CategoryId>('groceries');
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [currency, setCurrency] = useState<CurrencyCode>('USD');
+  const [rates, setRates] = useState<Record<CurrencyCode, number>>(FALLBACK_RATES);
+
+  // Fetch live exchange rates on mount
+  useEffect(() => {
+    fetchLiveRates().then((liveRates) => {
+      setRates(liveRates);
+    });
+  }, []);
+
+  // Handler to change currency and convert all stored values according to real-time rates
+  const handleCurrencyChange = (newCurrency: CurrencyCode) => {
+    if (newCurrency === currency) return;
+
+    const oldCurrency = currency;
+
+    // Convert transactions
+    setTransactions((prevTxs) =>
+      prevTxs.map((tx) => ({
+        ...tx,
+        amount: convertCurrency(tx.amount, oldCurrency, newCurrency, rates),
+      }))
+    );
+
+    // Convert categories
+    setCategories((prevCats) =>
+      prevCats.map((cat) => ({
+        ...cat,
+        amount: convertCurrency(cat.amount, oldCurrency, newCurrency, rates),
+      }))
+    );
+
+    setCurrency(newCurrency);
+    showToast(`Currency updated to ${newCurrency} (Rate applied)`);
+  };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -121,6 +158,7 @@ export default function App() {
           categories={categories}
           transactions={transactions}
           totalBalance={totalSpending}
+          currency={currency}
           onSelectCategory={handleSelectCategory}
           onOpenAddModal={() => setIsAddModalOpen(true)}
           onSelectTransaction={setSelectedTransaction}
@@ -134,6 +172,7 @@ export default function App() {
           categories={categories}
           transactions={transactions}
           totalSpending={totalSpending}
+          currency={currency}
           onSelectCategory={handleSelectCategory}
           onSelectTransaction={setSelectedTransaction}
         />
@@ -143,13 +182,16 @@ export default function App() {
         <WalletDetailsView
           category={selectedCategory}
           transactions={transactions}
+          currency={currency}
           onOpenAddModal={() => setIsAddModalOpen(true)}
           onSelectTransaction={setSelectedTransaction}
           onQuickAction={(actionName) => showToast(`Action: ${actionName}`)}
         />
       )}
 
-      {currentTab === 'profile' && <ProfileView />}
+      {currentTab === 'profile' && (
+        <ProfileView currency={currency} onCurrencyChange={handleCurrencyChange} rates={rates} />
+      )}
 
       {/* Bottom Floating Navigation Bar */}
       <BottomNav
@@ -162,6 +204,7 @@ export default function App() {
       <AddTransactionModal
         categories={categories}
         isOpen={isAddModalOpen}
+        currency={currency}
         onClose={() => setIsAddModalOpen(false)}
         onAddTransaction={handleAddTransaction}
       />
@@ -170,6 +213,7 @@ export default function App() {
       <TransactionDetailsModal
         transaction={selectedTransaction}
         categories={categories}
+        currency={currency}
         onClose={() => setSelectedTransaction(null)}
         onDelete={handleDeleteTransaction}
       />

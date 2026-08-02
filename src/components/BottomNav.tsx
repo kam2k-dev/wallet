@@ -12,92 +12,86 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   onTabChange,
   onOpenAddModal,
 }) => {
+  const tabs = [
+    {
+      id: 'dashboard' as ViewTab,
+      label: 'Home',
+      iconOutline: 'grid_view',
+      iconFilled: 'grid_view',
+    },
+    {
+      id: 'wallet' as ViewTab,
+      label: 'Wallet',
+      iconOutline: 'wallet',
+      iconFilled: 'wallet',
+    },
+    {
+      id: 'add',
+      label: 'Add',
+      iconOutline: 'add',
+      iconFilled: 'add',
+      isSpecial: true,
+    },
+    {
+      id: 'analysis' as ViewTab,
+      label: 'Analytics',
+      iconOutline: 'insights',
+      iconFilled: 'insights',
+    },
+    {
+      id: 'profile' as ViewTab,
+      label: 'Profile',
+      iconOutline: 'account_circle',
+      iconFilled: 'account_circle',
+    },
+  ];
+
   return (
-    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center justify-around px-4 py-2 w-[340px] max-w-[95vw] bg-[#000000] rounded-full shadow-2xl transition-all duration-300">
-      {/* Home / Dashboard */}
-      <button
-        onClick={() => onTabChange('dashboard')}
-        aria-label="Home Dashboard"
-        className={`p-3 transition-all duration-200 active:scale-90 rounded-full ${
-          currentTab === 'dashboard'
-            ? 'bg-[#2170e4] text-white shadow-md'
-            : 'text-white/70 hover:text-white hover:bg-white/10'
-        }`}
-      >
-        <span
-          className={`material-symbols-outlined text-[22px] ${
-            currentTab === 'dashboard' ? 'fill-1' : ''
-          }`}
-        >
-          home
-        </span>
-      </button>
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+      <nav className="ios-liquid-glass flex items-center justify-between px-3 py-2 rounded-full w-[360px] max-w-[94vw] transition-all duration-300">
+        {tabs.map((tab) => {
+          if (tab.isSpecial) {
+            return (
+              <button
+                key={tab.id}
+                onClick={onOpenAddModal}
+                aria-label="Add transaction"
+                className="relative group p-2.5 rounded-full active:scale-95 transition-all duration-200"
+              >
+                <div className="w-11 h-11 rounded-full bg-gradient-to-b from-[#007aff] to-[#0051a8] text-white shadow-lg shadow-[#007aff]/30 flex items-center justify-center border border-white/40 group-hover:scale-105 group-hover:shadow-[#007aff]/50 transition-all duration-300">
+                  <span className="material-symbols-outlined text-[26px] font-bold transition-transform duration-300 group-hover:rotate-90">
+                    add
+                  </span>
+                </div>
+              </button>
+            );
+          }
 
-      {/* Wallet Details */}
-      <button
-        onClick={() => onTabChange('wallet')}
-        aria-label="Wallet Details"
-        className={`p-3 transition-all duration-200 active:scale-90 rounded-full ${
-          currentTab === 'wallet'
-            ? 'bg-[#2170e4] text-white shadow-md'
-            : 'text-white/70 hover:text-white hover:bg-white/10'
-        }`}
-      >
-        <span
-          className={`material-symbols-outlined text-[22px] ${
-            currentTab === 'wallet' ? 'fill-1' : ''
-          }`}
-        >
-          account_balance_wallet
-        </span>
-      </button>
+          const isActive = currentTab === tab.id;
 
-      {/* Add Button */}
-      <button
-        onClick={onOpenAddModal}
-        aria-label="Add transaction"
-        className="text-white/70 hover:text-white p-3 transition-all duration-200 active:scale-90 hover:bg-white/10 rounded-full"
-      >
-        <span className="material-symbols-outlined text-[22px]">add</span>
-      </button>
-
-      {/* Spend Analysis */}
-      <button
-        onClick={() => onTabChange('analysis')}
-        aria-label="Spend Analysis"
-        className={`p-3 transition-all duration-200 active:scale-90 rounded-full ${
-          currentTab === 'analysis'
-            ? 'bg-[#2170e4] text-white shadow-md'
-            : 'text-white/70 hover:text-white hover:bg-white/10'
-        }`}
-      >
-        <span
-          className={`material-symbols-outlined text-[22px] ${
-            currentTab === 'analysis' ? 'fill-1' : ''
-          }`}
-        >
-          pie_chart
-        </span>
-      </button>
-
-      {/* Profile */}
-      <button
-        onClick={() => onTabChange('profile')}
-        aria-label="Profile"
-        className={`p-3 transition-all duration-200 active:scale-90 rounded-full ${
-          currentTab === 'profile'
-            ? 'bg-[#2170e4] text-white shadow-md'
-            : 'text-white/70 hover:text-white hover:bg-white/10'
-        }`}
-      >
-        <span
-          className={`material-symbols-outlined text-[22px] ${
-            currentTab === 'profile' ? 'fill-1' : ''
-          }`}
-        >
-          person
-        </span>
-      </button>
-    </nav>
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id as ViewTab)}
+              aria-label={tab.label}
+              className={`relative flex flex-col items-center justify-center px-4 py-2 rounded-full transition-all duration-300 active:scale-90 ${
+                isActive
+                  ? 'ios-liquid-item-active text-white scale-105 shadow-md'
+                  : 'text-[#141b2b]/60 hover:text-[#141b2b] hover:bg-white/30'
+              }`}
+            >
+              <span
+                className={`material-symbols-outlined text-[22px] transition-all duration-200 ${
+                  isActive ? 'fill-1 scale-110' : ''
+                }`}
+              >
+                {isActive ? tab.iconFilled : tab.iconOutline}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
+    </div>
   );
 };
+

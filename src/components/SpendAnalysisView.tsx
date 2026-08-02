@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Category, Transaction, CategoryId } from '../types';
+import { CurrencyCode, formatCurrency } from '../utils/currency';
 
 interface SpendAnalysisViewProps {
   categories: Category[];
   transactions: Transaction[];
   totalSpending: number;
+  currency: CurrencyCode;
   onSelectCategory: (categoryId: CategoryId) => void;
   onSelectTransaction: (transaction: Transaction) => void;
 }
@@ -13,6 +15,7 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
   categories,
   transactions,
   totalSpending,
+  currency,
   onSelectCategory,
   onSelectTransaction,
 }) => {
@@ -20,6 +23,8 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
   const [aiInsight, setAiInsight] = useState<string | null>(null);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
   const [showPieDetail, setShowPieDetail] = useState(false);
+
+  const formatAmount = (num: number) => formatCurrency(num, currency);
 
   // Filter transactions
   const filteredTransactions = transactions.filter((tx) => {
@@ -63,14 +68,6 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
     }
   };
 
-  const formatAmount = (num: number) => {
-    const formatted = Math.abs(num).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-    return num < 0 ? `-$${formatted}` : `$${formatted}`;
-  };
-
   return (
     <main className="max-w-md mx-auto px-5 pt-4 space-y-6 pb-28">
       {/* Total Spending Section */}
@@ -79,10 +76,7 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
           <div>
             <p className="text-[14px] leading-[20px] text-[#47464b]">Total spending</p>
             <h2 className="font-bold text-[28px] leading-[36px] text-[#141b2b] mt-1">
-              ${totalSpending.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              {formatCurrency(totalSpending, currency)}
             </h2>
           </div>
           <button
@@ -162,10 +156,7 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
               </span>
             </div>
             <span className="font-semibold text-[16px] leading-[24px] text-[#141b2b]">
-              ${cat.amount.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              {formatCurrency(cat.amount, currency)}
             </span>
           </div>
         ))}

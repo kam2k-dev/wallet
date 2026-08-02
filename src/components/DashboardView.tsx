@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Category, Transaction, CategoryId } from '../types';
+import { CurrencyCode, formatCurrency } from '../utils/currency';
 
 interface DashboardViewProps {
   categories: Category[];
   transactions: Transaction[];
   totalBalance: number;
+  currency: CurrencyCode;
   onSelectCategory: (categoryId: CategoryId) => void;
   onOpenAddModal: () => void;
   onSelectTransaction: (transaction: Transaction) => void;
@@ -16,6 +18,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   categories,
   transactions,
   totalBalance,
+  currency,
   onSelectCategory,
   onOpenAddModal,
   onSelectTransaction,
@@ -27,13 +30,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   // Take latest 5 transactions
   const latestTransactions = transactions.slice(0, 5);
 
-  const formatAmount = (num: number) => {
-    const formatted = Math.abs(num).toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-    return num < 0 ? `-$${formatted}` : `$${formatted}`;
-  };
+  const formatAmount = (num: number) => formatCurrency(num, currency);
 
   return (
     <main className="px-5 space-y-6 pt-2 pb-28 max-w-md mx-auto">
@@ -53,12 +50,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
         <div className="flex items-baseline gap-2">
           <h1 className="font-bold text-[28px] leading-[36px] text-[#141b2b] tracking-tight">
-            {showBalance
-              ? `$${totalBalance.toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}`
-              : '••••••••'}
+            {showBalance ? formatCurrency(totalBalance, currency) : '••••••••'}
           </h1>
         </div>
       </section>
@@ -132,7 +124,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="mt-auto">
                 <p className="text-[12px] font-medium opacity-90">{cat.name}</p>
                 <p className="font-semibold text-[16px] leading-[24px]">
-                  ${cat.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {formatCurrency(cat.amount, currency)}
                 </p>
               </div>
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />

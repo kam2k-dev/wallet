@@ -1,9 +1,11 @@
 import React from 'react';
 import { Transaction, Category } from '../types';
+import { CurrencyCode, formatCurrency } from '../utils/currency';
 
 interface TransactionDetailsModalProps {
   transaction: Transaction | null;
   categories: Category[];
+  currency: CurrencyCode;
   onClose: () => void;
   onDelete: (id: string) => void;
 }
@@ -11,6 +13,7 @@ interface TransactionDetailsModalProps {
 export const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
   transaction,
   categories,
+  currency,
   onClose,
   onDelete,
 }) => {
@@ -54,9 +57,7 @@ export const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = (
               transaction.amount < 0 ? 'text-[#ba1a1a]' : 'text-[#27AE60]'
             }`}
           >
-            {transaction.amount < 0
-              ? `-$${Math.abs(transaction.amount).toFixed(2)}`
-              : `$${Math.abs(transaction.amount).toFixed(2)}`}
+            {formatCurrency(transaction.amount, currency)}
           </p>
         </div>
 

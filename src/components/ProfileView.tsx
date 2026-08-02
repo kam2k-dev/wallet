@@ -1,6 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { CURRENCIES, CurrencyCode, getCurrency } from '../utils/currency';
+import { FALLBACK_RATES } from '../utils/exchangeRate';
 
-export const ProfileView: React.FC = () => {
+interface ProfileViewProps {
+  currency: CurrencyCode;
+  rates?: Record<CurrencyCode, number>;
+  onCurrencyChange: (code: CurrencyCode) => void;
+}
+
+export const ProfileView: React.FC<ProfileViewProps> = ({
+  currency,
+  rates = FALLBACK_RATES,
+  onCurrencyChange,
+}) => {
+  const [isCurrencyPickerOpen, setIsCurrencyPickerOpen] = useState(false);
+  const activeCurrency = getCurrency(currency);
+
   return (
     <main className="max-w-md mx-auto px-5 pt-4 space-y-6 pb-28">
       {/* Profile Header */}
@@ -29,13 +44,70 @@ export const ProfileView: React.FC = () => {
           <span className="text-[12px] text-[#77767b]">2 Connected</span>
         </div>
 
-        <div className="flex items-center justify-between p-3 hover:bg-[#f9f9ff] rounded-2xl cursor-pointer">
+        <div
+          onClick={() => setIsCurrencyPickerOpen(!isCurrencyPickerOpen)}
+          className="flex items-center justify-between p-3 hover:bg-[#f9f9ff] rounded-2xl cursor-pointer"
+        >
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-[#0058be]">payments</span>
             <span className="text-[14px] font-medium text-[#141b2b]">Primary Currency</span>
           </div>
-          <span className="text-[12px] text-[#77767b]">USD ($)</span>
+          <span className="text-[12px] text-[#77767b]">
+            {activeCurrency.code} ({activeCurrency.symbol})
+          </span>
         </div>
+
+        {/* Currency Picker */}
+        {isCurrencyPickerOpen && (
+          <div className="mx-2 mb-2 p-2 bg-[#f9f9ff] rounded-2xl border border-black/5 space-y-1 animate-in fade-in">
+            <div className="px-3 py-1.5 text-[11px] font-medium text-[#77767b] flex justify-between items-center border-b border-black/5 mb-1">
+              <span>Real-time conversion rates</span>
+              <span className="text-[10px] text-[#2170e4] font-semibold">● Live Exchange</span>
+            </div>
+            {CURRENCIES.map((cur) => {
+              const rateVal = rates[cur.code] || 1;
+              return (
+                <button
+                  key={cur.code}
+                  onClick={() => {
+                    onCurrencyChange(cur.code);
+                    setIsCurrencyPickerOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all ${
+                    currency === cur.code
+                      ? 'bg-[#2170e4]/10 border border-[#2170e4]/30'
+                      : 'hover:bg-white border border-transparent'
+                  }`}
+                >
+                  <span className="flex items-center gap-3">
+                    <span
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold ${
+                        currency === cur.code
+                          ? 'bg-[#2170e4] text-white'
+                          : 'bg-[#e1e8fd] text-[#47464b]'
+                      }`}
+                    >
+                      {cur.symbol}
+                    </span>
+                    <span>
+                      <span className="block text-[13px] font-semibold text-[#141b2b]">
+                        {cur.code}
+                      </span>
+                      <span className="block text-[11px] text-[#77767b]">
+                        {cur.label} • 1 USD = {cur.symbol}{rateVal.toLocaleString()}
+                      </span>
+                    </span>
+                  </span>
+                  {currency === cur.code && (
+                    <span className="material-symbols-outlined text-[#2170e4] text-[18px]">
+                      check_circle
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <div className="flex items-center justify-between p-3 hover:bg-[#f9f9ff] rounded-2xl cursor-pointer">
           <div className="flex items-center gap-3">
