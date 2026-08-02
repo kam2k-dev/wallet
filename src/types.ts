@@ -30,3 +30,4 @@ export interface ChartPoint {
   amount: number;
   fullDate: string;
 }
+const testBug: number = 'error_type';
