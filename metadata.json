@@ -1,0 +1,6 @@
+{
+  "name": "Spend Analysis & Wallet",
+  "description": "Modern fintech financial dashboard, wallet details, and spend analysis application.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

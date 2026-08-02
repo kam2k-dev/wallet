@@ -1,0 +1,178 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React, { useState, useMemo } from 'react';
+import { ViewTab, CategoryId, Transaction, Category } from './types';
+import { INITIAL_CATEGORIES, INITIAL_TRANSACTIONS } from './data/mockData';
+import { Header } from './components/Header';
+import { BottomNav } from './components/BottomNav';
+import { DashboardView } from './components/DashboardView';
+import { SpendAnalysisView } from './components/SpendAnalysisView';
+import { WalletDetailsView } from './components/WalletDetailsView';
+import { ProfileView } from './components/ProfileView';
+import { AddTransactionModal } from './components/AddTransactionModal';
+import { TransactionDetailsModal } from './components/TransactionDetailsModal';
+
+export default function App() {
+  const [currentTab, setCurrentTab] = useState<ViewTab>('analysis'); // Default to Spend Analysis screen from prompt
+  const [selectedCategoryId, setSelectedCategoryId] = useState<CategoryId>('groceries');
+  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((current) => (current === msg ? null : current));
+    }, 3000);
+  };
+
+  // Recalculate spending totals
+  const totalSpending = useMemo(() => {
+    return categories.reduce((sum, cat) => sum + cat.amount, 0);
+  }, [categories]);
+
+  const selectedCategory = useMemo(() => {
+    return categories.find((c) => c.id === selectedCategoryId) || categories[0];
+  }, [categories, selectedCategoryId]);
+
+  const handleSelectCategory = (catId: CategoryId) => {
+    setSelectedCategoryId(catId);
+    setCurrentTab('wallet');
+  };
+
+  const handleAddTransaction = (newTxData: Omit<Transaction, 'id'>) => {
+    const newTx: Transaction = {
+      ...newTxData,
+      id: `tx-${Date.now()}`,
+    };
+
+    setTransactions((prev) => [newTx, ...prev]);
+
+    // Update corresponding category total
+    setCategories((prevCats) =>
+      prevCats.map((cat) => {
+        if (cat.id === newTx.categoryId) {
+          return {
+            ...cat,
+            amount: cat.amount + Math.abs(newTx.amount),
+          };
+        }
+        return cat;
+      })
+    );
+
+    showToast(`Added "${newTx.title}" successfully!`);
+  };
+
+  const handleDeleteTransaction = (id: string) => {
+    const txToDelete = transactions.find((t) => t.id === id);
+    if (!txToDelete) return;
+
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+
+    setCategories((prevCats) =>
+      prevCats.map((cat) => {
+        if (cat.id === txToDelete.categoryId) {
+          return {
+            ...cat,
+            amount: Math.max(0, cat.amount - Math.abs(txToDelete.amount)),
+          };
+        }
+        return cat;
+      })
+    );
+
+    showToast(`Deleted "${txToDelete.title}"`);
+  };
+
+  const handleBackHeader = () => {
+    if (currentTab === 'wallet') {
+      setCurrentTab('analysis');
+    } else if (currentTab === 'analysis' || currentTab === 'profile') {
+      setCurrentTab('dashboard');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f9f9ff] text-[#141b2b] relative selection:bg-[#2170e4]/20">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#141b2b] text-white px-5 py-2.5 rounded-full text-[13px] font-medium shadow-xl animate-in fade-in slide-in-from-top-2">
+          {toastMessage}
+        </div>
+      )}
+
+      {/* Top Header */}
+      <Header
+        currentTab={currentTab}
+        categoryTitle={selectedCategory.name}
+        onBack={handleBackHeader}
+        onOpenNotifications={() => showToast('No new notifications')}
+      />
+
+      {/* Main View Area */}
+      {currentTab === 'dashboard' && (
+        <DashboardView
+          categories={categories}
+          transactions={transactions}
+          totalBalance={totalSpending}
+          onSelectCategory={handleSelectCategory}
+          onOpenAddModal={() => setIsAddModalOpen(true)}
+          onSelectTransaction={setSelectedTransaction}
+          onSeeAllTransactions={() => setCurrentTab('analysis')}
+          onQuickAction={(actionName) => showToast(`Action: ${actionName}`)}
+        />
+      )}
+
+      {currentTab === 'analysis' && (
+        <SpendAnalysisView
+          categories={categories}
+          transactions={transactions}
+          totalSpending={totalSpending}
+          onSelectCategory={handleSelectCategory}
+          onSelectTransaction={setSelectedTransaction}
+        />
+      )}
+
+      {currentTab === 'wallet' && (
+        <WalletDetailsView
+          category={selectedCategory}
+          transactions={transactions}
+          onOpenAddModal={() => setIsAddModalOpen(true)}
+          onSelectTransaction={setSelectedTransaction}
+          onQuickAction={(actionName) => showToast(`Action: ${actionName}`)}
+        />
+      )}
+
+      {currentTab === 'profile' && <ProfileView />}
+
+      {/* Bottom Floating Navigation Bar */}
+      <BottomNav
+        currentTab={currentTab}
+        onTabChange={setCurrentTab}
+        onOpenAddModal={() => setIsAddModalOpen(true)}
+      />
+
+      {/* Add Transaction Modal */}
+      <AddTransactionModal
+        categories={categories}
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAddTransaction={handleAddTransaction}
+      />
+
+      {/* Transaction Details Modal */}
+      <TransactionDetailsModal
+        transaction={selectedTransaction}
+        categories={categories}
+        onClose={() => setSelectedTransaction(null)}
+        onDelete={handleDeleteTransaction}
+      />
+    </div>
+  );
+}
