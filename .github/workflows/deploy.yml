@@ -1,4 +1,4 @@
-name: Deploy Wallet Spend Analysis to VPS
+name: CI/CD Pipeline - Test & Deploy
 
 on:
   push:
@@ -6,14 +6,37 @@ on:
       - main
 
 jobs:
-  deploy:
+  # ==========================================
+  # JOB 1: Continuous Integration (CI Check)
+  # ==========================================
+  test-and-build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: SSH to VPS & Rebuild Docker Container
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Check Type & Test Build
+        run: npm run build # Kalau build error/typo, job ini langsung FAIL!
+
+  # ==========================================
+  # JOB 2: Continuous Deployment (CD)
+  # ==========================================
+  deploy:
+    needs: test-and-build # 🚨 SYARAT MUTLAK: Job 1 Wajib Sukses!
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH to VPS & Rebuild Container
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
