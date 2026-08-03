@@ -33,6 +33,38 @@ export const INITIAL_CATEGORIES: Category[] = [
     bgHex: '#ff9800',
     icon: 'home',
   },
+  {
+    id: 'salary',
+    name: 'Salary',
+    amount: 0,
+    color: '#27AE60',
+    bgHex: '#2ecc71',
+    icon: 'payments',
+  },
+  {
+    id: 'freelance',
+    name: 'Freelance',
+    amount: 0,
+    color: '#00bcd4',
+    bgHex: '#0097a7',
+    icon: 'work',
+  },
+  {
+    id: 'investment',
+    name: 'Investment',
+    amount: 0,
+    color: '#8e44ad',
+    bgHex: '#9b59b6',
+    icon: 'trending_up',
+  },
+  {
+    id: 'other_income',
+    name: 'Other Income',
+    amount: 0,
+    color: '#16a085',
+    bgHex: '#1abc9c',
+    icon: 'savings',
+  },
 ];
 
 export const INITIAL_TRANSACTIONS: Transaction[] = [];

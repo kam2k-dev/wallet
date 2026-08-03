@@ -75,7 +75,10 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         <div className="flex bg-[#e9edff] p-1 rounded-2xl">
           <button
             type="button"
-            onClick={() => setType('expense')}
+            onClick={() => {
+              setType('expense');
+              setCategoryId('groceries');
+            }}
             className={`flex-1 py-2 text-[14px] font-semibold rounded-xl transition-all ${
               type === 'expense'
                 ? 'bg-bg-secondary text-text-primary shadow-sm'
@@ -86,7 +89,10 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => setType('income')}
+            onClick={() => {
+              setType('income');
+              setCategoryId('salary');
+            }}
             className={`flex-1 py-2 text-[14px] font-semibold rounded-xl transition-all ${
               type === 'income'
                 ? 'bg-[#27AE60] text-white shadow-sm'
@@ -132,7 +138,12 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               Category
             </label>
             <div className="grid grid-cols-2 gap-2">
-              {categories.map((cat) => (
+              {categories
+                .filter((cat) => type === 'income' 
+                  ? ['salary', 'freelance', 'investment', 'other_income'].includes(cat.id) 
+                  : !['salary', 'freelance', 'investment', 'other_income'].includes(cat.id)
+                )
+                .map((cat) => (
                 <button
                   key={cat.id}
                   type="button"

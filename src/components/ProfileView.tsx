@@ -102,14 +102,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
         )}
 
-        <div className="flex items-center justify-between p-3 hover:bg-bg-primary rounded-2xl cursor-pointer">
-          <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-[#0058be]">security</span>
-            <span className="text-[14px] font-medium text-text-primary">Security & Biometrics</span>
-          </div>
-          <span className="material-symbols-outlined text-[#77767b] text-[18px]">chevron_right</span>
-        </div>
-
         <div 
           onClick={onToggleDarkMode}
           className="flex items-center justify-between p-3 hover:bg-bg-primary rounded-2xl cursor-pointer"

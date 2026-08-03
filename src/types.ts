@@ -1,4 +1,4 @@
-export type CategoryId = 'groceries' | 'transport' | 'entertainment' | 'rent';
+export type CategoryId = 'groceries' | 'transport' | 'entertainment' | 'rent' | 'salary' | 'freelance' | 'investment' | 'other_income';
 
 export interface Category {
   id: CategoryId;

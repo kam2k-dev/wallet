@@ -22,11 +22,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSeeAllTransactions,
 }) => {
   const [showBalance, setShowBalance] = useState(true);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [hiddenCategories, setHiddenCategories] = useState<Set<CategoryId>>(() => {
+    const saved = localStorage.getItem('hiddenCategories');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
+
+  const toggleCategoryVisibility = (id: CategoryId, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setHiddenCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      localStorage.setItem('hiddenCategories', JSON.stringify(Array.from(next)));
+      return next;
+    });
+  };
 
   // Take latest 5 transactions
   const latestTransactions = transactions.slice(0, 5);
 
   const formatAmount = (num: number) => formatCurrency(num, currency);
+
+  const visibleCategories = isEditMode 
+    ? categories 
+    : categories.filter(cat => !hiddenCategories.has(cat.id));
 
   return (
     <main className="px-5 space-y-6 pt-2 pb-28 max-w-md mx-auto">
@@ -55,28 +78,53 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-[16px] leading-[24px] text-text-primary">Categories</h2>
+          <button
+            onClick={() => setIsEditMode(!isEditMode)}
+            className="text-[#0058be] text-[12px] font-medium hover:underline"
+          >
+            {isEditMode ? 'Done' : 'Edit'}
+          </button>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          {categories.map((cat) => (
-            <div
-              key={cat.id}
-              onClick={() => onSelectCategory(cat.id)}
-              className="p-4 rounded-3xl text-white flex flex-col justify-between aspect-square active-scale transition-transform shadow-md overflow-hidden relative group cursor-pointer"
-              style={{ backgroundColor: cat.bgHex }}
-            >
-              <div className="absolute top-0 right-0 p-3">
-                <span className="material-symbols-outlined text-[20px] opacity-90">{cat.icon}</span>
+          {visibleCategories.map((cat) => {
+            const isHidden = hiddenCategories.has(cat.id);
+            return (
+              <div
+                key={cat.id}
+                onClick={() => !isEditMode && onSelectCategory(cat.id)}
+                className={`p-4 rounded-3xl text-white flex flex-col justify-between aspect-square transition-all shadow-md overflow-hidden relative group ${
+                  !isEditMode ? 'cursor-pointer active-scale hover:shadow-lg' : ''
+                } ${isEditMode && isHidden ? 'opacity-50 grayscale' : ''}`}
+                style={{ backgroundColor: cat.bgHex }}
+              >
+                <div className="absolute top-0 right-0 p-3 flex items-center gap-2">
+                  {isEditMode && (
+                    <button
+                      onClick={(e) => toggleCategoryVisibility(cat.id, e)}
+                      className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center hover:bg-black/40 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        {isHidden ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
+                  )}
+                  {!isEditMode && (
+                    <span className="material-symbols-outlined text-[20px] opacity-90">{cat.icon}</span>
+                  )}
+                </div>
+                <div className="mt-auto">
+                  <p className="text-[12px] font-medium opacity-90">{cat.name}</p>
+                  <p className="font-semibold text-[16px] leading-[24px]">
+                    {formatCurrency(cat.amount, currency)}
+                  </p>
+                </div>
+                {!isEditMode && (
+                  <div className="absolute inset-0 bg-bg-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                )}
               </div>
-              <div className="mt-auto">
-                <p className="text-[12px] font-medium opacity-90">{cat.name}</p>
-                <p className="font-semibold text-[16px] leading-[24px]">
-                  {formatCurrency(cat.amount, currency)}
-                </p>
-              </div>
-              <div className="absolute inset-0 bg-bg-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
