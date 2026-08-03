@@ -123,7 +123,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
             <p className="text-[#77767b] text-[14px] leading-[20px] font-medium">
               {category.name}
             </p>
-            <p className="font-bold text-[28px] leading-[36px] tracking-tight text-[#141b2b]">
+            <p className="font-bold text-[28px] leading-[36px] tracking-tight text-text-primary">
               {formatCurrency(category.amount, currency)}
             </p>
           </div>
@@ -134,11 +134,11 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-semibold text-[16px] leading-[24px] text-[#141b2b]">
+            <h2 className="font-semibold text-[16px] leading-[24px] text-text-primary">
               {currentMonthName}
             </h2>
             <p className="text-[#77767b] text-[12px] leading-[16px]">
-              <span className="text-[#141b2b] font-bold">
+              <span className="text-text-primary font-bold">
                 {formatCurrency(categoryTransactions.reduce((sum, tx) => sum + Math.abs(tx.amount), 0), currency)}
               </span>{' '}
               Spent
@@ -163,7 +163,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
         </div>
 
         {/* Line Chart Representation */}
-        <div className="w-full bg-gradient-to-b from-[#9466ff]/10 to-transparent rounded-2xl p-4 border border-black/5 shadow-inner">
+        <div className="w-full bg-gradient-to-b from-[#9466ff]/10 to-transparent rounded-2xl p-4 border border-border-color shadow-inner">
           <div className="relative w-full" style={{ aspectRatio: '400 / 150' }}>
             <svg
               className="w-full h-full overflow-visible"
@@ -249,7 +249,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search for any transaction"
-          className="w-full pl-12 pr-4 py-3.5 bg-[#f1f3ff] border-none rounded-full text-[14px] focus:ring-2 focus:ring-[#0058be]/20 placeholder:text-[#77767b] outline-none"
+          className="w-full pl-12 pr-4 py-3.5 bg-bg-tertiary border-none rounded-full text-[14px] focus:ring-2 focus:ring-[#0058be]/20 placeholder:text-[#77767b] outline-none"
         />
         {searchQuery && (
           <button
@@ -264,7 +264,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
       {/* Transaction List */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-[16px] leading-[24px] text-[#141b2b]">
+          <h3 className="font-semibold text-[16px] leading-[24px] text-text-primary">
             Latest transaction
           </h3>
         </div>
@@ -279,7 +279,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
               <div
                 key={tx.id}
                 onClick={() => onSelectTransaction(tx)}
-                className="flex items-center justify-between p-4 bg-white rounded-2xl border border-black/5 hover:shadow-md transition-shadow cursor-pointer"
+                className="flex items-center justify-between p-4 bg-bg-secondary rounded-2xl border border-border-color hover:shadow-md transition-shadow cursor-pointer"
               >
                 <div className="flex items-center gap-4 min-w-0">
                   <div className="w-12 h-12 rounded-xl bg-[#e9edff] flex items-center justify-center overflow-hidden shrink-0">
@@ -299,7 +299,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="font-semibold text-[16px] text-[#141b2b] truncate">
+                    <p className="font-semibold text-[16px] text-text-primary truncate">
                       {tx.title}
                     </p>
                     <p className="text-[12px] text-[#77767b] truncate">
@@ -307,7 +307,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
                     </p>
                   </div>
                 </div>
-                <p className="font-semibold text-[16px] text-[#141b2b] shrink-0">
+                <p className="font-semibold text-[16px] text-text-primary shrink-0">
                   {formatCurrency(tx.amount, currency)}
                 </p>
               </div>
@@ -320,7 +320,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
       <div className="fixed bottom-24 left-1/2 -translate-x-1/2 ios-liquid-glass px-6 py-2.5 rounded-full flex items-center gap-6 shadow-xl z-40">
         <button
           onClick={onOpenAddModal}
-          className="flex items-center gap-2 text-[#141b2b] hover:text-[#007aff] transition-colors active:scale-95 duration-200"
+          className="flex items-center gap-2 text-text-primary hover:text-[#007aff] transition-colors active:scale-95 duration-200"
         >
           <span className="material-symbols-outlined text-[20px] text-[#007aff]">add</span>
           <span className="text-[13px] font-semibold">Add</span>
@@ -330,7 +330,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
 
         <button
           onClick={() => onQuickAction('Move Funds')}
-          className="flex items-center gap-2 text-[#141b2b] hover:text-[#007aff] transition-colors active:scale-95 duration-200"
+          className="flex items-center gap-2 text-text-primary hover:text-[#007aff] transition-colors active:scale-95 duration-200"
         >
           <span className="material-symbols-outlined text-[20px] text-[#007aff]">swap_horiz</span>
           <span className="text-[13px] font-semibold">Move</span>
@@ -340,7 +340,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
 
         <button
           onClick={() => onQuickAction('Send Funds')}
-          className="flex items-center gap-2 text-[#141b2b] hover:text-[#007aff] transition-colors active:scale-95 duration-200"
+          className="flex items-center gap-2 text-text-primary hover:text-[#007aff] transition-colors active:scale-95 duration-200"
         >
           <span className="material-symbols-outlined text-[20px] text-[#007aff]">send</span>
           <span className="text-[13px] font-semibold">Send</span>

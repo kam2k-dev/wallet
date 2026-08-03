@@ -13,7 +13,7 @@ interface AddTransactionModalProps {
 export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   categories,
   isOpen,
-  currency = 'USD',
+  currency = 'IDR',
   onClose,
   onAddTransaction,
 }) => {
@@ -21,7 +21,6 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState<CategoryId>('groceries');
   const [type, setType] = useState<'expense' | 'income'>('expense');
-  const [paymentMethod, setPaymentMethod] = useState('Card •••• 1234');
   // Default to today's date (ISO format for <input type="date">)
   const [rawDate, setRawDate] = useState(() => new Date().toISOString().split('T')[0]);
 
@@ -47,7 +46,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       categoryId,
       categoryName: selectedCategory?.name || 'Groceries',
       amount: type === 'expense' ? -Math.abs(numAmount) : Math.abs(numAmount),
-      paymentMethod,
+      paymentMethod: 'Cash', // Default fallback since UI is removed
       date: displayDate,
       rawDate,
     });
@@ -59,27 +58,14 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
     onClose();
   };
 
-  const autoSelectCategory = (inputTitle: string) => {
-    const lower = inputTitle.toLowerCase();
-    if (lower.includes('mart') || lower.includes('food') || lower.includes('bakery') || lower.includes('market') || lower.includes('grocery')) {
-      setCategoryId('groceries');
-    } else if (lower.includes('gas') || lower.includes('uber') || lower.includes('bus') || lower.includes('train') || lower.includes('taxi') || lower.includes('car')) {
-      setCategoryId('transport');
-    } else if (lower.includes('cinema') || lower.includes('ticket') || lower.includes('concert') || lower.includes('netflix') || lower.includes('spotify') || lower.includes('movie')) {
-      setCategoryId('entertainment');
-    } else if (lower.includes('rent') || lower.includes('electric') || lower.includes('water') || lower.includes('bill') || lower.includes('power')) {
-      setCategoryId('rent');
-    }
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-      <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-black/10 space-y-5">
+      <div className="bg-bg-secondary rounded-3xl p-6 w-full max-w-md shadow-2xl border border-border-color space-y-5">
         <div className="flex items-center justify-between">
-          <h2 className="text-[20px] font-bold text-[#141b2b]">Add Transaction</h2>
+          <h2 className="text-[20px] font-bold text-text-primary">Add Transaction</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#f1f3ff] flex items-center justify-center text-[#47464b] hover:bg-[#e1e8fd]"
+            className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center text-text-secondary hover:bg-[#e1e8fd]"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
@@ -92,8 +78,8 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             onClick={() => setType('expense')}
             className={`flex-1 py-2 text-[14px] font-semibold rounded-xl transition-all ${
               type === 'expense'
-                ? 'bg-white text-[#141b2b] shadow-sm'
-                : 'text-[#47464b] hover:text-[#141b2b]'
+                ? 'bg-bg-secondary text-text-primary shadow-sm'
+                : 'text-text-secondary hover:text-text-primary'
             }`}
           >
             Expense (-)
@@ -104,7 +90,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             className={`flex-1 py-2 text-[14px] font-semibold rounded-xl transition-all ${
               type === 'income'
                 ? 'bg-[#27AE60] text-white shadow-sm'
-                : 'text-[#47464b] hover:text-[#141b2b]'
+                : 'text-text-secondary hover:text-text-primary'
             }`}
           >
             Income (+)
@@ -113,7 +99,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-[12px] font-medium text-[#47464b] mb-1">
+            <label className="block text-[12px] font-medium text-text-secondary mb-1">
               Title / Merchant
             </label>
             <input
@@ -121,16 +107,13 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               required
               placeholder="e.g. Supermart Groceries"
               value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                autoSelectCategory(e.target.value);
-              }}
-              className="w-full px-4 py-3 bg-[#f1f3ff] rounded-2xl text-[14px] outline-none focus:ring-2 focus:ring-[#0058be]"
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-4 py-3 bg-bg-tertiary rounded-2xl text-[14px] outline-none focus:ring-2 focus:ring-[#0058be]"
             />
           </div>
 
           <div>
-            <label className="block text-[12px] font-medium text-[#47464b] mb-1">
+            <label className="block text-[12px] font-medium text-text-secondary mb-1">
               Amount ({activeCur.symbol})
             </label>
             <input
@@ -140,12 +123,12 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full px-4 py-3 bg-[#f1f3ff] rounded-2xl text-[16px] font-bold text-[#141b2b] outline-none focus:ring-2 focus:ring-[#0058be]"
+              className="w-full px-4 py-3 bg-bg-tertiary rounded-2xl text-[16px] font-bold text-text-primary outline-none focus:ring-2 focus:ring-[#0058be]"
             />
           </div>
 
           <div>
-            <label className="block text-[12px] font-medium text-[#47464b] mb-1">
+            <label className="block text-[12px] font-medium text-text-secondary mb-1">
               Category
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -157,7 +140,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                   className={`p-3 rounded-2xl border text-left flex items-center gap-2 transition-all ${
                     categoryId === cat.id
                       ? 'border-[#2170e4] bg-[#2170e4]/10 text-[#0058be] font-bold'
-                      : 'border-black/5 bg-[#f1f3ff] text-[#47464b]'
+                      : 'border-border-color bg-bg-tertiary text-text-secondary'
                   }`}
                 >
                   <span
@@ -170,32 +153,16 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2">
             <div>
-              <label className="block text-[12px] font-medium text-[#47464b] mb-1">
-                Payment Method
-              </label>
-              <select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="w-full px-3 py-3 bg-[#f1f3ff] rounded-2xl text-[13px] outline-none"
-              >
-                <option value="Card •••• 1234">Card •••• 1234</option>
-                <option value="Paid with Visa">Paid with Visa</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-                <option value="Cash">Cash</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[12px] font-medium text-[#47464b] mb-1">
+              <label className="block text-[12px] font-medium text-text-secondary mb-1">
                 Date
               </label>
               <input
                 type="date"
                 value={rawDate}
                 onChange={(e) => setRawDate(e.target.value)}
-                className="w-full px-3 py-3 bg-[#f1f3ff] rounded-2xl text-[13px] outline-none"
+                className="w-full px-3 py-3 bg-bg-tertiary rounded-2xl text-[13px] outline-none"
               />
             </div>
           </div>

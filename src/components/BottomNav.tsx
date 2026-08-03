@@ -77,7 +77,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 active:scale-90 ${
                 isActive
                   ? 'ios-liquid-item-active text-white'
-                  : 'text-[#141b2b]/60 hover:text-[#141b2b] hover:bg-white/30'
+                  : 'text-text-primary/60 hover:text-text-primary hover:bg-bg-secondary/30'
               }`}
             >
               <span

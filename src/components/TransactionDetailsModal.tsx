@@ -23,19 +23,19 @@ export const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = (
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-      <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-black/10 space-y-5">
+      <div className="bg-bg-secondary rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-border-color space-y-5">
         <div className="flex items-center justify-between">
-          <h3 className="text-[18px] font-bold text-[#141b2b]">Transaction Details</h3>
+          <h3 className="text-[18px] font-bold text-text-primary">Transaction Details</h3>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#f1f3ff] flex items-center justify-center text-[#47464b] hover:bg-[#e1e8fd]"
+            className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center text-text-secondary hover:bg-[#e1e8fd]"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
 
         <div className="flex flex-col items-center justify-center py-2 space-y-2">
-          <div className="w-16 h-16 rounded-full bg-[#f1f3ff] flex items-center justify-center overflow-hidden border border-black/5 shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-bg-tertiary flex items-center justify-center overflow-hidden border border-border-color shadow-sm">
             {transaction.iconUrl ? (
               <img
                 src={transaction.iconUrl}
@@ -51,7 +51,7 @@ export const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = (
               </span>
             )}
           </div>
-          <h2 className="text-[20px] font-bold text-[#141b2b] text-center">{transaction.title}</h2>
+          <h2 className="text-[20px] font-bold text-text-primary text-center">{transaction.title}</h2>
           <p
             className={`text-[24px] font-bold ${
               transaction.amount < 0 ? 'text-[#ba1a1a]' : 'text-[#27AE60]'
@@ -61,10 +61,10 @@ export const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = (
           </p>
         </div>
 
-        <div className="bg-[#f9f9ff] p-4 rounded-2xl space-y-3 text-[14px]">
+        <div className="bg-bg-primary p-4 rounded-2xl space-y-3 text-[14px]">
           <div className="flex justify-between items-center">
-            <span className="text-[#47464b]">Category</span>
-            <span className="font-semibold text-[#141b2b] flex items-center gap-1.5">
+            <span className="text-text-secondary">Category</span>
+            <span className="font-semibold text-text-primary flex items-center gap-1.5">
               <span
                 className="w-2.5 h-2.5 rounded-full"
                 style={{ backgroundColor: category?.color || '#0058be' }}
@@ -74,17 +74,17 @@ export const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = (
           </div>
 
           <div className="flex justify-between items-center">
-            <span className="text-[#47464b]">Date</span>
-            <span className="font-semibold text-[#141b2b]">{transaction.date}</span>
+            <span className="text-text-secondary">Date</span>
+            <span className="font-semibold text-text-primary">{transaction.date}</span>
           </div>
 
           <div className="flex justify-between items-center">
-            <span className="text-[#47464b]">Payment Method</span>
-            <span className="font-semibold text-[#141b2b]">{transaction.paymentMethod}</span>
+            <span className="text-text-secondary">Payment Method</span>
+            <span className="font-semibold text-text-primary">{transaction.paymentMethod}</span>
           </div>
 
           <div className="flex justify-between items-center">
-            <span className="text-[#47464b]">Status</span>
+            <span className="text-text-secondary">Status</span>
             <span className="font-semibold text-[#27AE60] bg-[#27AE60]/10 px-2 py-0.5 rounded-md text-[12px]">
               Completed
             </span>

@@ -8,10 +8,8 @@ interface DashboardViewProps {
   totalBalance: number;
   currency: CurrencyCode;
   onSelectCategory: (categoryId: CategoryId) => void;
-  onOpenAddModal: () => void;
   onSelectTransaction: (transaction: Transaction) => void;
   onSeeAllTransactions: () => void;
-  onQuickAction: (actionName: string) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -20,10 +18,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   totalBalance,
   currency,
   onSelectCategory,
-  onOpenAddModal,
   onSelectTransaction,
   onSeeAllTransactions,
-  onQuickAction,
 }) => {
   const [showBalance, setShowBalance] = useState(true);
 
@@ -37,10 +33,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Main Balance Section */}
       <section className="space-y-1">
         <div className="flex items-center justify-between">
-          <p className="text-[#47464b] text-[14px] leading-[20px]">Main balance</p>
+          <p className="text-text-secondary text-[14px] leading-[20px]">Main balance</p>
           <button
             onClick={() => setShowBalance(!showBalance)}
-            className="text-[#47464b] hover:text-[#141b2b] p-1 transition-colors"
+            className="text-text-secondary hover:text-text-primary p-1 transition-colors"
             title="Toggle balance visibility"
           >
             <span className="material-symbols-outlined text-[20px]">
@@ -49,65 +45,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </button>
         </div>
         <div className="flex items-baseline gap-2">
-          <h1 className="font-bold text-[28px] leading-[36px] text-[#141b2b] tracking-tight">
+          <h1 className="font-bold text-[28px] leading-[36px] text-text-primary tracking-tight">
             {showBalance ? formatCurrency(totalBalance, currency) : '••••••••'}
           </h1>
         </div>
       </section>
 
-      {/* Quick Action Buttons */}
-      <section className="flex justify-between items-center py-1">
-        <div
-          onClick={onOpenAddModal}
-          className="flex flex-col items-center gap-2 group cursor-pointer active-scale transition-all"
-        >
-          <div className="w-14 h-14 rounded-full bg-[#e9edff] flex items-center justify-center group-hover:bg-[#e1e8fd] transition-colors shadow-sm">
-            <span className="material-symbols-outlined text-[#141b2b]">add</span>
-          </div>
-          <span className="text-[12px] font-medium text-[#47464b]">Add</span>
-        </div>
-
-        <div
-          onClick={() => onQuickAction('Move')}
-          className="flex flex-col items-center gap-2 group cursor-pointer active-scale transition-all"
-        >
-          <div className="w-14 h-14 rounded-full bg-[#e9edff] flex items-center justify-center group-hover:bg-[#e1e8fd] transition-colors shadow-sm">
-            <span className="material-symbols-outlined text-[#141b2b]">swap_horiz</span>
-          </div>
-          <span className="text-[12px] font-medium text-[#47464b]">Move</span>
-        </div>
-
-        <div
-          onClick={() => onQuickAction('Send')}
-          className="flex flex-col items-center gap-2 group cursor-pointer active-scale transition-all"
-        >
-          <div className="w-14 h-14 rounded-full bg-[#e9edff] flex items-center justify-center group-hover:bg-[#e1e8fd] transition-colors shadow-sm">
-            <span className="material-symbols-outlined text-[#141b2b]">send</span>
-          </div>
-          <span className="text-[12px] font-medium text-[#47464b]">Send</span>
-        </div>
-
-        <div
-          onClick={() => onQuickAction('Details')}
-          className="flex flex-col items-center gap-2 group cursor-pointer active-scale transition-all"
-        >
-          <div className="w-14 h-14 rounded-full bg-[#e9edff] flex items-center justify-center group-hover:bg-[#e1e8fd] transition-colors shadow-sm">
-            <span className="material-symbols-outlined text-[#141b2b]">more_horiz</span>
-          </div>
-          <span className="text-[12px] font-medium text-[#47464b]">Details</span>
-        </div>
-      </section>
-
-      {/* Quick Actions / Category Cards Grid */}
+      {/* Category Cards Grid */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-[16px] leading-[24px] text-[#141b2b]">Quick actions</h2>
-          <button
-            onClick={() => onQuickAction('Edit Actions')}
-            className="text-[#0058be] text-[12px] font-medium hover:underline"
-          >
-            Edit
-          </button>
+          <h2 className="font-semibold text-[16px] leading-[24px] text-text-primary">Categories</h2>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -127,7 +74,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   {formatCurrency(cat.amount, currency)}
                 </p>
               </div>
-              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              <div className="absolute inset-0 bg-bg-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
             </div>
           ))}
         </div>
@@ -136,7 +83,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Latest Transactions */}
       <section className="space-y-4 pb-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-[16px] leading-[24px] text-[#141b2b]">Latest transaction</h2>
+          <h2 className="font-semibold text-[16px] leading-[24px] text-text-primary">Latest transaction</h2>
           <button
             onClick={onSeeAllTransactions}
             className="text-[#0058be] text-[12px] font-medium hover:underline"
@@ -150,7 +97,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div
               key={tx.id}
               onClick={() => onSelectTransaction(tx)}
-              className="flex items-center gap-4 bg-white p-3.5 rounded-2xl shadow-sm border border-black/5 active-scale transition-all cursor-pointer hover:shadow-md"
+              className="flex items-center gap-4 bg-bg-secondary p-3.5 rounded-2xl shadow-sm border border-border-color active-scale transition-all cursor-pointer hover:shadow-md"
             >
               <div className="w-12 h-12 rounded-full overflow-hidden bg-[#e9edff] flex items-center justify-center shrink-0">
                 {tx.iconUrl ? (
@@ -177,8 +124,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
 
               <div className="flex-grow min-w-0">
-                <p className="text-[14px] font-semibold text-[#141b2b] truncate">{tx.title}</p>
-                <p className="text-[12px] text-[#47464b] truncate">
+                <p className="text-[14px] font-semibold text-text-primary truncate">{tx.title}</p>
+                <p className="text-[12px] text-text-secondary truncate">
                   {tx.date} • {tx.paymentMethod}
                 </p>
               </div>
@@ -186,7 +133,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="text-right shrink-0">
                 <p
                   className={`text-[14px] font-bold ${
-                    tx.amount < 0 ? 'text-[#ba1a1a]' : 'text-[#141b2b]'
+                    tx.amount < 0 ? 'text-[#ba1a1a]' : 'text-text-primary'
                   }`}
                 >
                   {formatAmount(tx.amount)}

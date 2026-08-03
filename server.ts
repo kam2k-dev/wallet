@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI } from "@google/genai";
+import { db } from "./server/db/index";
 
 async function startServer() {
   const app = express();
@@ -14,58 +14,54 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
-  // API route: Smart Category Insights using Gemini API
-  app.post("/api/smart-categorize", async (req, res) => {
+  // ─── Data API (dummy JSON in dev, Supabase in prod) ──────────────────────
+
+  // GET all transactions
+  app.get("/api/transactions", async (_req, res) => {
     try {
-      const { transactions, promptText } = req.body;
-      const apiKey = process.env.GEMINI_API_KEY;
-
-      if (!apiKey) {
-        // Fallback response if GEMINI_API_KEY is not set yet
-        return res.json({
-          insight: "We've categorized your transactions automatically into Groceries, Transport, Entertainment, and Rent & Utilities. Your top spending area this month is Groceries ($1,245.30).",
-          suggestions: [
-            { category: "groceries", title: "Supermart Groceries", suggestion: "High frequency grocery store detected" },
-            { category: "rent", title: "Monthly Rent", suggestion: "Fixed monthly obligation" }
-          ]
-        });
-      }
-
-      const ai = new GoogleGenAI({ apiKey });
-      const prompt = `You are a modern financial assistant for a fintech spend analysis app. 
-Analyze these user transactions: ${JSON.stringify(transactions || [])}.
-User request / context: ${promptText || "Provide spend insights and category tips."}.
-Return a clean JSON object with two fields:
-1. "insight": a friendly 2-sentence summary of spending habits and recommendations.
-2. "suggestions": an array of items with { title, category, tip }.`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-      });
-
-      const responseText = response.text || "";
-      let parsed = null;
-      try {
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          parsed = JSON.parse(jsonMatch[0]);
-        }
-      } catch (e) {
-        console.warn("Could not parse AI JSON response, returning raw text", e);
-      }
-
-      res.json(parsed || {
-        insight: responseText || "We've categorized your transactions automatically. You may change them if you want.",
-        suggestions: []
-      });
-
+      const transactions = await db.getTransactions();
+      res.json(transactions);
     } catch (error: any) {
-      console.error("Gemini smart categorize error:", error);
-      res.json({
-        insight: "We've categorized your transactions automatically based on merchant names. You may re-assign categories anytime.",
-        suggestions: []
-      });
+      console.error("GET /api/transactions error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET all categories
+  app.get("/api/categories", async (_req, res) => {
+    try {
+      const categories = await db.getCategories();
+      res.json(categories);
+    } catch (error: any) {
+      console.error("GET /api/categories error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // POST a new transaction
+  app.post("/api/transactions", async (req, res) => {
+    try {
+      const tx = req.body;
+      if (!tx || !tx.id || !tx.title || typeof tx.amount !== "number") {
+        return res.status(400).json({ error: "Invalid transaction payload" });
+      }
+      const created = await db.addTransaction(tx);
+      res.status(201).json(created);
+    } catch (error: any) {
+      console.error("POST /api/transactions error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // DELETE a transaction by id
+  app.delete("/api/transactions/:id", async (req, res) => {
+    try {
+      const ok = await db.deleteTransaction(req.params.id);
+      if (!ok) return res.status(404).json({ error: "Transaction not found" });
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("DELETE /api/transactions/:id error:", error);
+      res.status(500).json({ error: error.message });
     }
   });
 

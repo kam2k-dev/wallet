@@ -6,6 +6,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ViewTab, CategoryId, Transaction, Category } from './types';
 import { INITIAL_CATEGORIES, INITIAL_TRANSACTIONS } from './data/mockData';
+import { api } from './api/client';
 import { CurrencyCode } from './utils/currency';
 import { fetchLiveRates, convertCurrency, FALLBACK_RATES } from './utils/exchangeRate';
 import { Header } from './components/Header';
@@ -25,14 +26,50 @@ export default function App() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [currency, setCurrency] = useState<CurrencyCode>('USD');
+  const [currency, setCurrency] = useState<CurrencyCode>('IDR');
   const [rates, setRates] = useState<Record<CurrencyCode, number>>(FALLBACK_RATES);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved) return saved === 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  // Apply dark mode class to html element
+  useEffect(() => {
+    const html = document.documentElement;
+    if (isDarkMode) {
+      html.classList.add('dark');
+      html.classList.remove('light');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      html.classList.add('light');
+      html.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   // Fetch live exchange rates on mount
   useEffect(() => {
     fetchLiveRates().then((liveRates) => {
       setRates(liveRates);
     });
+  }, []);
+
+  // Load data from backend (dummy JSON in dev, Supabase in prod)
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([api.getCategories(), api.getTransactions()])
+      .then(([cats, txs]) => {
+        if (cancelled) return;
+        if (cats.length) setCategories(cats);
+        if (txs.length) setTransactions(txs);
+      })
+      .catch((err) => {
+        console.warn('Failed to load data from API, using mock data:', err);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Handler to change currency and convert all stored values according to real-time rates
@@ -82,11 +119,18 @@ export default function App() {
     setCurrentTab('wallet');
   };
 
-  const handleAddTransaction = (newTxData: Omit<Transaction, 'id'>) => {
+  const handleAddTransaction = async (newTxData: Omit<Transaction, 'id'>) => {
     const newTx: Transaction = {
       ...newTxData,
       id: `tx-${Date.now()}`,
     };
+
+    // Persist to backend (dummy JSON in dev, Supabase in prod)
+    try {
+      await api.addTransaction(newTx);
+    } catch (err) {
+      console.warn('Failed to persist transaction to API:', err);
+    }
 
     setTransactions((prev) => [newTx, ...prev]);
 
@@ -106,9 +150,16 @@ export default function App() {
     showToast(`Added "${newTx.title}" successfully!`);
   };
 
-  const handleDeleteTransaction = (id: string) => {
+  const handleDeleteTransaction = async (id: string) => {
     const txToDelete = transactions.find((t) => t.id === id);
     if (!txToDelete) return;
+
+    // Persist deletion to backend
+    try {
+      await api.deleteTransaction(id);
+    } catch (err) {
+      console.warn('Failed to delete transaction from API:', err);
+    }
 
     setTransactions((prev) => prev.filter((t) => t.id !== id));
 
@@ -136,7 +187,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#141b2b] relative selection:bg-[#2170e4]/20">
+    <div className="min-h-screen bg-bg-primary text-text-primary relative selection:bg-[#2170e4]/20">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#141b2b] text-white px-5 py-2.5 rounded-full text-[13px] font-medium shadow-xl animate-in fade-in slide-in-from-top-2">
@@ -149,7 +200,6 @@ export default function App() {
         currentTab={currentTab}
         categoryTitle={selectedCategory.name}
         onBack={handleBackHeader}
-        onOpenNotifications={() => showToast('No new notifications')}
       />
 
       {/* Main View Area */}
@@ -160,10 +210,8 @@ export default function App() {
           totalBalance={totalSpending}
           currency={currency}
           onSelectCategory={handleSelectCategory}
-          onOpenAddModal={() => setIsAddModalOpen(true)}
           onSelectTransaction={setSelectedTransaction}
           onSeeAllTransactions={() => setCurrentTab('analysis')}
-          onQuickAction={(actionName) => showToast(`Action: ${actionName}`)}
         />
       )}
 
@@ -190,7 +238,13 @@ export default function App() {
       )}
 
       {currentTab === 'profile' && (
-        <ProfileView currency={currency} onCurrencyChange={handleCurrencyChange} rates={rates} />
+        <ProfileView 
+          currency={currency} 
+          onCurrencyChange={handleCurrencyChange} 
+          rates={rates} 
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+        />
       )}
 
       {/* Bottom Floating Navigation Bar */}
