@@ -72,8 +72,9 @@
 .ios-liquid-item-active {
   background: linear-gradient(135deg, #007aff 0%, #0051a8 100%);
   box-shadow: 
-    0 6px 16px -2px rgba(0, 122, 255, 0.45),
+    0 8px 20px -2px rgba(0, 122, 255, 0.5),
     inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
 }
 
 .shadow-soft {

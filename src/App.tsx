@@ -179,9 +179,7 @@ export default function App() {
   };
 
   const handleBackHeader = () => {
-    if (currentTab === 'wallet') {
-      setCurrentTab('analysis');
-    } else if (currentTab === 'analysis' || currentTab === 'profile') {
+    if (currentTab === 'wallet' || currentTab === 'analysis' || currentTab === 'profile') {
       setCurrentTab('dashboard');
     }
   };

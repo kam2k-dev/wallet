@@ -303,7 +303,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
                       {tx.title}
                     </p>
                     <p className="text-[12px] text-[#77767b] truncate">
-                      {tx.date} • {tx.paymentMethod}
+                      {tx.date}
                     </p>
                   </div>
                 </div>
@@ -315,37 +315,6 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
           )}
         </div>
       </section>
-
-      {/* Floating Bottom Action Bar Pill */}
-      <div className="fixed bottom-24 left-1/2 -translate-x-1/2 ios-liquid-glass px-6 py-2.5 rounded-full flex items-center gap-6 shadow-xl z-40">
-        <button
-          onClick={onOpenAddModal}
-          className="flex items-center gap-2 text-text-primary hover:text-[#007aff] transition-colors active:scale-95 duration-200"
-        >
-          <span className="material-symbols-outlined text-[20px] text-[#007aff]">add</span>
-          <span className="text-[13px] font-semibold">Add</span>
-        </button>
-
-        <div className="w-[1px] h-4 bg-black/10" />
-
-        <button
-          onClick={() => onQuickAction('Move Funds')}
-          className="flex items-center gap-2 text-text-primary hover:text-[#007aff] transition-colors active:scale-95 duration-200"
-        >
-          <span className="material-symbols-outlined text-[20px] text-[#007aff]">swap_horiz</span>
-          <span className="text-[13px] font-semibold">Move</span>
-        </button>
-
-        <div className="w-[1px] h-4 bg-black/10" />
-
-        <button
-          onClick={() => onQuickAction('Send Funds')}
-          className="flex items-center gap-2 text-text-primary hover:text-[#007aff] transition-colors active:scale-95 duration-200"
-        >
-          <span className="material-symbols-outlined text-[20px] text-[#007aff]">send</span>
-          <span className="text-[13px] font-semibold">Send</span>
-        </button>
-      </div>
     </main>
   );
 };

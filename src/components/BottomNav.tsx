@@ -16,14 +16,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     {
       id: 'dashboard' as ViewTab,
       label: 'Home',
-      iconOutline: 'grid_view',
-      iconFilled: 'grid_view',
+      iconOutline: 'home',
+      iconFilled: 'home',
     },
     {
       id: 'wallet' as ViewTab,
       label: 'Wallet',
-      iconOutline: 'wallet',
-      iconFilled: 'wallet',
+      iconOutline: 'account_balance_wallet',
+      iconFilled: 'account_balance_wallet',
     },
     {
       id: 'add',
@@ -35,14 +35,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     {
       id: 'analysis' as ViewTab,
       label: 'Analytics',
-      iconOutline: 'insights',
-      iconFilled: 'insights',
+      iconOutline: 'pie_chart',
+      iconFilled: 'pie_chart',
     },
     {
       id: 'profile' as ViewTab,
       label: 'Profile',
-      iconOutline: 'account_circle',
-      iconFilled: 'account_circle',
+      iconOutline: 'person',
+      iconFilled: 'person',
     },
   ];
 
@@ -76,12 +76,12 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               aria-label={tab.label}
               className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 active:scale-90 ${
                 isActive
-                  ? 'ios-liquid-item-active text-white'
+                  ? 'ios-liquid-item-active text-white z-10'
                   : 'text-text-primary/60 hover:text-text-primary hover:bg-bg-secondary/30'
               }`}
             >
               <span
-                className={`material-symbols-outlined text-[20px] transition-all duration-200 ${
+                className={`material-symbols-outlined text-[22px] transition-all duration-200 ${
                   isActive ? 'fill-1' : ''
                 }`}
               >

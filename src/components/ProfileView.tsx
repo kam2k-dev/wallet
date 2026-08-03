@@ -31,9 +31,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <h2 className="text-[20px] font-bold text-text-primary">John Doe</h2>
           <p className="text-[14px] text-text-secondary">john.doe@example.com</p>
         </div>
-        <div className="inline-block bg-[#e9edff] text-[#0058be] text-[12px] font-semibold px-3 py-1 rounded-full">
-          Premium Account
-        </div>
       </section>
 
       {/* Account Preferences */}
