@@ -47,8 +47,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   ];
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
-      <nav className="ios-liquid-glass flex items-center justify-between px-3 py-2 rounded-full w-[360px] max-w-[94vw] transition-all duration-300">
+    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-auto w-full px-4">
+      <nav className="ios-liquid-glass flex items-center justify-between px-3 py-1.5 rounded-full w-full max-w-[420px] mx-auto transition-all duration-300">
         {tabs.map((tab) => {
           if (tab.isSpecial) {
             return (
@@ -56,10 +56,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 key={tab.id}
                 onClick={onOpenAddModal}
                 aria-label="Add transaction"
-                className="relative group p-2.5 rounded-full active:scale-95 transition-all duration-200"
+                className="relative group p-1.5 rounded-full active:scale-95 transition-all duration-200"
               >
-                <div className="w-11 h-11 rounded-full bg-gradient-to-b from-[#007aff] to-[#0051a8] text-white shadow-lg shadow-[#007aff]/30 flex items-center justify-center border border-white/40 group-hover:scale-105 group-hover:shadow-[#007aff]/50 transition-all duration-300">
-                  <span className="material-symbols-outlined text-[26px] font-bold transition-transform duration-300 group-hover:rotate-90">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-b from-[#007aff] to-[#0051a8] text-white shadow-md shadow-[#007aff]/30 flex items-center justify-center border border-white/40 group-hover:scale-105 group-hover:shadow-[#007aff]/50 transition-all duration-300">
+                  <span className="material-symbols-outlined text-[22px] font-bold transition-transform duration-300 group-hover:rotate-90">
                     add
                   </span>
                 </div>
@@ -74,15 +74,15 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               key={tab.id}
               onClick={() => onTabChange(tab.id as ViewTab)}
               aria-label={tab.label}
-              className={`relative flex flex-col items-center justify-center px-4 py-2 rounded-full transition-all duration-300 active:scale-90 ${
+              className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 active:scale-90 ${
                 isActive
-                  ? 'ios-liquid-item-active text-white scale-105 shadow-md'
+                  ? 'ios-liquid-item-active text-white'
                   : 'text-[#141b2b]/60 hover:text-[#141b2b] hover:bg-white/30'
               }`}
             >
               <span
-                className={`material-symbols-outlined text-[22px] transition-all duration-200 ${
-                  isActive ? 'fill-1 scale-110' : ''
+                className={`material-symbols-outlined text-[20px] transition-all duration-200 ${
+                  isActive ? 'fill-1' : ''
                 }`}
               >
                 {isActive ? tab.iconFilled : tab.iconOutline}

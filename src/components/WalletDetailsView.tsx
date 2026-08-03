@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Category, Transaction, CategoryId, ChartPoint } from '../types';
 import { CurrencyCode, formatCurrency } from '../utils/currency';
 
@@ -11,17 +11,6 @@ interface WalletDetailsViewProps {
   onQuickAction: (actionName: string) => void;
 }
 
-const MOCK_CHART_POINTS: ChartPoint[] = [
-  { dayNum: 1, dateLabel: 'Sep 1', fullDate: 'Sep 1, 2025', amount: 35.20 },
-  { dayNum: 3, dateLabel: 'Sep 3', fullDate: 'Sep 3, 2025', amount: 55.40 },
-  { dayNum: 5, dateLabel: 'Sep 5', fullDate: 'Sep 5, 2025', amount: 28.10 },
-  { dayNum: 7, dateLabel: 'Sep 7', fullDate: 'Sep 7, 2025', amount: 82.75 },
-  { dayNum: 10, dateLabel: 'Sep 10', fullDate: 'Sep 10, 2025', amount: 42.00 },
-  { dayNum: 12, dateLabel: 'Sep 12', fullDate: 'Sep 12, 2025', amount: 75.30 },
-  { dayNum: 14, dateLabel: 'Sep 14', fullDate: 'Sep 14, 2025', amount: 52.30 },
-  { dayNum: 15, dateLabel: 'Sep 15', fullDate: 'Sep 15, 2025', amount: 64.10 },
-];
-
 export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
   category,
   transactions,
@@ -30,7 +19,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
   onSelectTransaction,
   onQuickAction,
 }) => {
-  const [selectedPointIndex, setSelectedPointIndex] = useState(3); // Default Sep 7
+  const [selectedPointIndex, setSelectedPointIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [monthOffset, setMonthOffset] = useState(0);
 
@@ -52,7 +41,41 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
     );
   });
 
-  const activePoint = MOCK_CHART_POINTS[selectedPointIndex] || MOCK_CHART_POINTS[3];
+  // Generate chart points from actual transaction data
+  const chartPoints = useMemo(() => {
+    const dailyTotals: Record<number, number> = {};
+
+    // Aggregate transactions by day
+    categoryTransactions.forEach((tx) => {
+      const day = parseInt(tx.rawDate.split('-')[2], 10);
+      if (!isNaN(day)) {
+        dailyTotals[day] = (dailyTotals[day] || 0) + Math.abs(tx.amount);
+      }
+    });
+
+    // Convert to chart points
+    const points: ChartPoint[] = Object.entries(dailyTotals)
+      .map(([day, amount]) => ({
+        dayNum: parseInt(day, 10),
+        dateLabel: `Sep ${day}`,
+        fullDate: `Sep ${day}, 2025`,
+        amount,
+      }))
+      .sort((a, b) => a.dayNum - b.dayNum);
+
+    // If no data, return default points
+    if (points.length === 0) {
+      return [
+        { dayNum: 1, dateLabel: 'Sep 1', fullDate: 'Sep 1, 2025', amount: 0 },
+        { dayNum: 7, dateLabel: 'Sep 7', fullDate: 'Sep 7, 2025', amount: 0 },
+        { dayNum: 15, dateLabel: 'Sep 15', fullDate: 'Sep 15, 2025', amount: 0 },
+      ];
+    }
+
+    return points;
+  }, [categoryTransactions]);
+
+  const activePoint = chartPoints[selectedPointIndex] || chartPoints[0];
 
   // SVG coordinate calculations for smoothly rendering line chart
   const width = 400;
@@ -60,11 +83,12 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
   const paddingX = 20;
   const paddingY = 30;
 
-  const minAmt = 20;
-  const maxAmt = 90;
+  const amounts = chartPoints.map((p) => p.amount);
+  const minAmt = Math.min(...amounts, 0);
+  const maxAmt = Math.max(...amounts, 100);
 
-  const pointsWithCoords = MOCK_CHART_POINTS.map((pt, idx) => {
-    const x = paddingX + (idx / (MOCK_CHART_POINTS.length - 1)) * (width - 2 * paddingX);
+  const pointsWithCoords = chartPoints.map((pt, idx) => {
+    const x = paddingX + (idx / (chartPoints.length - 1)) * (width - 2 * paddingX);
     const y = height - paddingY - ((pt.amount - minAmt) / (maxAmt - minAmt)) * (height - 2 * paddingY);
     return { ...pt, x, y };
   });
@@ -100,10 +124,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
               {category.name}
             </p>
             <p className="font-bold text-[28px] leading-[36px] tracking-tight text-[#141b2b]">
-              ${category.amount.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              {formatCurrency(category.amount, currency)}
             </p>
           </div>
         </div>
@@ -117,7 +138,10 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
               {currentMonthName}
             </h2>
             <p className="text-[#77767b] text-[12px] leading-[16px]">
-              <span className="text-[#141b2b] font-bold">$124.52</span> Spent
+              <span className="text-[#141b2b] font-bold">
+                {formatCurrency(categoryTransactions.reduce((sum, tx) => sum + Math.abs(tx.amount), 0), currency)}
+              </span>{' '}
+              Spent
             </p>
           </div>
           <div className="flex gap-2">
@@ -139,68 +163,78 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
         </div>
 
         {/* Line Chart Representation */}
-        <div className="relative w-full h-52 bg-gradient-to-b from-[#9466ff]/10 to-transparent rounded-2xl p-4 overflow-hidden border border-black/5 shadow-inner">
-          <svg className="w-full h-full overflow-visible" viewBox={`0 0 ${width} ${height}`}>
-            {/* Smooth Curve */}
-            <path
-              d={pathD}
-              fill="none"
-              stroke={category.color}
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-            {/* Vertical Indicator Line */}
-            {activeCoord && (
-              <line
-                x1={activeCoord.x}
-                y1={height - 20}
-                x2={activeCoord.x}
-                y2={activeCoord.y}
-                stroke={category.color}
-                strokeWidth="1.5"
-                strokeDasharray="4,4"
-              />
-            )}
-            {/* Clickable Chart Points */}
-            {pointsWithCoords.map((pt, idx) => (
-              <circle
-                key={idx}
-                cx={pt.x}
-                cy={pt.y}
-                r={selectedPointIndex === idx ? 6 : 4}
-                fill={category.color}
-                stroke="#ffffff"
-                strokeWidth={selectedPointIndex === idx ? 2 : 1}
-                className="cursor-pointer hover:r-7 transition-all"
-                onClick={() => setSelectedPointIndex(idx)}
-              />
-            ))}
-          </svg>
-
-          {/* Dynamic Tooltip */}
-          {activeCoord && (
-            <div
-              className="absolute bg-black text-white px-3 py-1.5 rounded-xl text-xs font-medium shadow-xl z-20 transition-all duration-200 pointer-events-none"
-              style={{
-                left: `${(activeCoord.x / width) * 100}%`,
-                top: `${(activeCoord.y / height) * 60 + 10}px`,
-                transform: 'translate(-50%, -100%)',
-              }}
+        <div className="w-full bg-gradient-to-b from-[#9466ff]/10 to-transparent rounded-2xl p-4 border border-black/5 shadow-inner">
+          <div className="relative w-full" style={{ aspectRatio: '400 / 150' }}>
+            <svg
+              className="w-full h-full overflow-visible"
+              viewBox={`0 0 ${width} ${height}`}
+              preserveAspectRatio="none"
             >
-              <div className="flex flex-col items-center">
-                <span className="font-bold text-[13px]">
-                  {formatCurrency(activePoint.amount, currency)}
-                </span>
-                <span className="text-[10px] opacity-75">{activePoint.fullDate}</span>
+              {/* Smooth Curve */}
+              <path
+                d={pathD}
+                fill="none"
+                stroke={category.color}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
+              />
+              {/* Vertical Indicator Line */}
+              {activeCoord && (
+                <line
+                  x1={activeCoord.x}
+                  y1={height - 20}
+                  x2={activeCoord.x}
+                  y2={activeCoord.y}
+                  stroke={category.color}
+                  strokeWidth="1.5"
+                  strokeDasharray="4,4"
+                />
+              )}
+              {/* Clickable Chart Points */}
+              {pointsWithCoords.map((pt, idx) => (
+                <circle
+                  key={idx}
+                  cx={pt.x}
+                  cy={pt.y}
+                  r={selectedPointIndex === idx ? 6 : 4}
+                  fill={category.color}
+                  stroke="#ffffff"
+                  strokeWidth={selectedPointIndex === idx ? 2 : 1}
+                  className="cursor-pointer hover:r-7 transition-all"
+                  onClick={() => setSelectedPointIndex(idx)}
+                />
+              ))}
+            </svg>
+
+            {/* Dynamic Tooltip — clamped so it never clips at the edges */}
+            {activeCoord && (
+              <div
+                className="absolute bg-black text-white px-3 py-1.5 rounded-xl text-xs font-medium shadow-xl z-20 transition-all duration-200 pointer-events-none whitespace-nowrap"
+                style={{
+                  left: `clamp(64px, ${(activeCoord.x / width) * 100}%, calc(100% - 64px))`,
+                  top: `${(activeCoord.y / height) * 100}%`,
+                  transform:
+                    activeCoord.y < 45
+                      ? 'translate(-50%, 16px)'
+                      : 'translate(-50%, calc(-100% - 16px))',
+                }}
+              >
+                <div className="flex flex-col items-center">
+                  <span className="font-bold text-[13px]">
+                    {formatCurrency(activePoint.amount, currency)}
+                  </span>
+                  <span className="text-[10px] opacity-75">{activePoint.fullDate}</span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* X Axis Date Labels */}
-          <div className="flex justify-between mt-1 text-[11px] text-[#77767b] px-2 font-medium">
-            <span>Sep 1</span>
-            <span>Sep 7</span>
-            <span>Sep 15</span>
+          <div className="flex justify-between mt-2 text-[11px] text-[#77767b] px-1 font-medium">
+            <span>{chartPoints[0]?.dateLabel || 'Sep 1'}</span>
+            <span>{chartPoints[Math.floor(chartPoints.length / 2)]?.dateLabel || 'Sep 7'}</span>
+            <span>{chartPoints[chartPoints.length - 1]?.dateLabel || 'Sep 15'}</span>
           </div>
         </div>
       </section>
