@@ -88,36 +88,36 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2.5">
           {visibleCategories.map((cat) => {
             const isHidden = hiddenCategories.has(cat.id);
             return (
               <div
                 key={cat.id}
                 onClick={() => !isEditMode && onSelectCategory(cat.id)}
-                className={`p-4 rounded-3xl text-white flex flex-col justify-between aspect-square transition-all shadow-md overflow-hidden relative group ${
-                  !isEditMode ? 'cursor-pointer active-scale hover:shadow-lg' : ''
+                className={`p-3 rounded-2xl text-white flex flex-col justify-between h-[100px] transition-all shadow-sm overflow-hidden relative group ${
+                  !isEditMode ? 'cursor-pointer active-scale hover:shadow-md' : ''
                 } ${isEditMode && isHidden ? 'opacity-50 grayscale' : ''}`}
                 style={{ backgroundColor: cat.bgHex }}
               >
-                <div className="absolute top-0 right-0 p-3 flex items-center gap-2">
+                <div className="absolute top-0 right-0 p-2.5 flex items-center gap-1.5">
                   {isEditMode && (
                     <button
                       onClick={(e) => toggleCategoryVisibility(cat.id, e)}
-                      className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center hover:bg-black/40 transition-colors"
+                      className="w-7 h-7 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center hover:bg-black/40 transition-colors"
                     >
-                      <span className="material-symbols-outlined text-[18px]">
+                      <span className="material-symbols-outlined text-[16px]">
                         {isHidden ? 'visibility_off' : 'visibility'}
                       </span>
                     </button>
                   )}
                   {!isEditMode && (
-                    <span className="material-symbols-outlined text-[20px] opacity-90">{cat.icon}</span>
+                    <span className="material-symbols-outlined text-[18px] opacity-90">{cat.icon}</span>
                   )}
                 </div>
                 <div className="mt-auto">
-                  <p className="text-[12px] font-medium opacity-90">{cat.name}</p>
-                  <p className="font-semibold text-[16px] leading-[24px]">
+                  <p className="text-[11px] font-medium opacity-90 truncate">{cat.name}</p>
+                  <p className="font-semibold text-[14px] leading-[20px] truncate">
                     {formatCurrency(cat.amount, currency)}
                   </p>
                 </div>

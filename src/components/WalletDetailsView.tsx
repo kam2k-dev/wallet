@@ -88,7 +88,10 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
   const maxAmt = Math.max(...amounts, 100);
 
   const pointsWithCoords = chartPoints.map((pt, idx) => {
-    const x = paddingX + (idx / (chartPoints.length - 1)) * (width - 2 * paddingX);
+    const x =
+      chartPoints.length > 1
+        ? paddingX + (idx / (chartPoints.length - 1)) * (width - 2 * paddingX)
+        : width / 2;
     const y = height - paddingY - ((pt.amount - minAmt) / (maxAmt - minAmt)) * (height - 2 * paddingY);
     return { ...pt, x, y };
   });
@@ -212,7 +215,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
               <div
                 className="absolute bg-black text-white px-3 py-1.5 rounded-xl text-xs font-medium shadow-xl z-20 transition-all duration-200 pointer-events-none whitespace-nowrap"
                 style={{
-                  left: `clamp(64px, ${(activeCoord.x / width) * 100}%, calc(100% - 64px))`,
+                  left: `clamp(80px, ${(activeCoord.x / width) * 100}%, calc(100% - 80px))`,
                   top: `${(activeCoord.y / height) * 100}%`,
                   transform:
                     activeCoord.y < 45
