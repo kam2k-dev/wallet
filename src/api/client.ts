@@ -32,9 +32,30 @@ export const api = {
     });
   },
 
+  async updateTransaction(tx: Transaction): Promise<Transaction> {
+    return request<Transaction>(`/api/transactions/${tx.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(tx),
+    });
+  },
+
   async deleteTransaction(id: string): Promise<{ success: boolean }> {
     return request<{ success: boolean }>(`/api/transactions/${id}`, {
       method: 'DELETE',
+    });
+  },
+
+  async addCategory(cat: Category): Promise<Category> {
+    return request<Category>('/api/categories', {
+      method: 'POST',
+      body: JSON.stringify(cat),
+    });
+  },
+
+  async updateCategories(categories: Category[]): Promise<{ success: boolean }> {
+    return request<{ success: boolean }>('/api/categories', {
+      method: 'PUT',
+      body: JSON.stringify(categories),
     });
   },
 };

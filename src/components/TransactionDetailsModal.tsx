@@ -8,6 +8,7 @@ interface TransactionDetailsModalProps {
   currency: CurrencyCode;
   onClose: () => void;
   onDelete: (id: string) => void;
+  onEdit?: (transaction: Transaction) => void;
 }
 
 export const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = ({
@@ -16,6 +17,7 @@ export const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = (
   currency,
   onClose,
   onDelete,
+  onEdit,
 }) => {
   if (!transaction) return null;
 
@@ -83,6 +85,15 @@ export const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = (
             <span className="font-semibold text-text-primary">{transaction.paymentMethod}</span>
           </div>
 
+          {transaction.notes && (
+            <div className="flex justify-between items-start">
+              <span className="text-text-secondary">Notes</span>
+              <span className="font-medium text-text-primary text-right max-w-[180px] break-words">
+                {transaction.notes}
+              </span>
+            </div>
+          )}
+
           <div className="flex justify-between items-center">
             <span className="text-text-secondary">Status</span>
             <span className="font-semibold text-[#27AE60] bg-[#27AE60]/10 px-2 py-0.5 rounded-md text-[12px]">
@@ -97,13 +108,24 @@ export const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = (
               onDelete(transaction.id);
               onClose();
             }}
-            className="flex-1 py-3 bg-[#ffdad6] text-[#93000a] font-semibold rounded-full hover:bg-[#ffb4ab] transition-all"
+            className="flex-1 py-3 bg-[#ffdad6] text-[#93000a] font-semibold rounded-full hover:bg-[#ffb4ab] transition-all text-[14px]"
           >
             Delete
           </button>
+          {onEdit && (
+            <button
+              onClick={() => {
+                onEdit(transaction);
+                onClose();
+              }}
+              className="flex-1 py-3 bg-[#e1e8fd] text-[#0058be] font-semibold rounded-full hover:bg-[#d0dcfa] transition-all text-[14px]"
+            >
+              Edit
+            </button>
+          )}
           <button
             onClick={onClose}
-            className="flex-1 py-3 bg-[#000000] text-white font-semibold rounded-full hover:bg-black/80 transition-all"
+            className="flex-1 py-3 bg-[#000000] dark:bg-[#2170e4] text-white font-semibold rounded-full hover:opacity-90 transition-all text-[14px]"
           >
             Done
           </button>

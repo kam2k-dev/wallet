@@ -8,6 +8,8 @@ interface ProfileViewProps {
   onCurrencyChange: (code: CurrencyCode) => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
+  onExportCSV?: () => void;
+  onExportJSON?: () => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -16,12 +18,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onCurrencyChange,
   isDarkMode,
   onToggleDarkMode,
+  onExportCSV,
+  onExportJSON,
 }) => {
   const [isCurrencyPickerOpen, setIsCurrencyPickerOpen] = useState(false);
   const activeCurrency = getCurrency(currency);
 
   return (
-    <main className="max-w-md mx-auto px-5 pt-4 space-y-6 pb-28">
+    <main className="max-w-md mx-auto px-5 pt-4 space-y-5 pb-28">
       {/* Profile Header */}
       <section className="bg-bg-secondary p-6 rounded-3xl border border-border-color shadow-sm text-center space-y-3">
         <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#2170e4] to-[#9466ff] text-white flex items-center justify-center text-[28px] font-bold mx-auto shadow-md">
@@ -118,6 +122,37 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
       </section>
 
+      {/* Data Management & Export */}
+      <section className="bg-bg-secondary rounded-3xl p-4 border border-border-color shadow-sm space-y-1">
+        <h3 className="text-[14px] font-bold text-text-secondary px-2 py-1">Data & Backup</h3>
+
+        {onExportCSV && (
+          <div
+            onClick={onExportCSV}
+            className="flex items-center justify-between p-3 hover:bg-bg-primary rounded-2xl cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-[#27AE60]">table_view</span>
+              <span className="text-[14px] font-medium text-text-primary">Export to CSV</span>
+            </div>
+            <span className="material-symbols-outlined text-text-secondary text-[18px]">download</span>
+          </div>
+        )}
+
+        {onExportJSON && (
+          <div
+            onClick={onExportJSON}
+            className="flex items-center justify-between p-3 hover:bg-bg-primary rounded-2xl cursor-pointer"
+          >
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-[#00bcd4]">data_object</span>
+              <span className="text-[14px] font-medium text-text-primary">Backup Data (JSON)</span>
+            </div>
+            <span className="material-symbols-outlined text-text-secondary text-[18px]">download</span>
+          </div>
+        )}
+      </section>
+
       {/* App Info */}
       <section className="bg-bg-secondary rounded-3xl p-4 border border-border-color shadow-sm space-y-1">
         <h3 className="text-[14px] font-bold text-text-secondary px-2 py-1">App Info</h3>
@@ -127,7 +162,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             <span className="material-symbols-outlined text-[#0058be]">info</span>
             <span className="text-[14px] font-medium text-text-primary">Version</span>
           </div>
-          <span className="text-[12px] text-[#77767b]">v2.4.0</span>
+          <span className="text-[12px] text-[#77767b]">v2.5.0</span>
         </div>
       </section>
     </main>

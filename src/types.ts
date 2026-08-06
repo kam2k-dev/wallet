@@ -1,4 +1,4 @@
-export type CategoryId = 'groceries' | 'transport' | 'entertainment' | 'rent' | 'salary' | 'freelance' | 'investment' | 'other_income';
+export type CategoryId = string;
 
 export interface Category {
   id: CategoryId;
@@ -7,6 +7,7 @@ export interface Category {
   color: string;
   bgHex: string;
   icon: string;
+  budget?: number; // Monthly budget limit
 }
 
 export interface Transaction {
@@ -15,9 +16,9 @@ export interface Transaction {
   categoryId: CategoryId;
   categoryName: string;
   date: string; // e.g., "Sep 14, 2025"
-  rawDate: string; // ISO date format for sorting/charts
-  amount: number; // positive or negative
-  paymentMethod: string; // e.g. "Card •••• 1234", "Paid with Visa"
+  rawDate: string; // ISO date format for sorting/charts (YYYY-MM-DD)
+  amount: number; // positive for income, negative for expense
+  paymentMethod: string; // e.g. "BCA", "Mandiri", "GoPay", "Cash", "Card"
   iconUrl?: string;
   notes?: string;
 }

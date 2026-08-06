@@ -6,23 +6,51 @@ interface AddTransactionModalProps {
   categories: Category[];
   isOpen: boolean;
   currency?: CurrencyCode;
+  initialData?: Transaction | null;
   onClose: () => void;
   onAddTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  onUpdateTransaction?: (transaction: Transaction) => void;
 }
+
+const PAYMENT_METHODS = ['Cash', 'BCA', 'Mandiri', 'BRI', 'BNI', 'GoPay', 'OVO', 'Dana', 'ShopeePay', 'Credit Card'];
 
 export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   categories,
   isOpen,
   currency = 'IDR',
+  initialData,
   onClose,
   onAddTransaction,
+  onUpdateTransaction,
 }) => {
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState<CategoryId>('groceries');
   const [type, setType] = useState<'expense' | 'income'>('expense');
-  // Default to today's date (ISO format for <input type="date">)
+  const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [notes, setNotes] = useState('');
   const [rawDate, setRawDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+  // Populate form if editing
+  React.useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title);
+      setAmount(Math.abs(initialData.amount).toString());
+      setCategoryId(initialData.categoryId);
+      setType(initialData.amount < 0 ? 'expense' : 'income');
+      setPaymentMethod(initialData.paymentMethod || 'Cash');
+      setNotes(initialData.notes || '');
+      setRawDate(initialData.rawDate || new Date().toISOString().split('T')[0]);
+    } else {
+      setTitle('');
+      setAmount('');
+      setCategoryId('groceries');
+      setType('expense');
+      setPaymentMethod('Cash');
+      setNotes('');
+      setRawDate(new Date().toISOString().split('T')[0]);
+    }
+  }, [initialData, isOpen]);
 
   const activeCur = getCurrency(currency as CurrencyCode);
 
@@ -41,28 +69,36 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
       year: 'numeric',
     });
 
-    onAddTransaction({
+    const txPayload = {
       title: title.trim(),
       categoryId,
       categoryName: selectedCategory?.name || 'Groceries',
       amount: type === 'expense' ? -Math.abs(numAmount) : Math.abs(numAmount),
-      paymentMethod: 'Cash', // Default fallback since UI is removed
+      paymentMethod,
+      notes: notes.trim() || undefined,
       date: displayDate,
       rawDate,
-    });
+    };
 
-    // Reset & close
-    setTitle('');
-    setAmount('');
-    setRawDate(new Date().toISOString().split('T')[0]);
+    if (initialData && onUpdateTransaction) {
+      onUpdateTransaction({
+        ...txPayload,
+        id: initialData.id,
+      });
+    } else {
+      onAddTransaction(txPayload);
+    }
+
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-      <div className="bg-bg-secondary rounded-3xl p-6 w-full max-w-md shadow-2xl border border-border-color space-y-5">
+      <div className="bg-bg-secondary rounded-3xl p-6 w-full max-w-md shadow-2xl border border-border-color space-y-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
-          <h2 className="text-[20px] font-bold text-text-primary">Add Transaction</h2>
+          <h2 className="text-[20px] font-bold text-text-primary">
+            {initialData ? 'Edit Transaction' : 'Add Transaction'}
+          </h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center text-text-secondary hover:bg-[#e1e8fd]"
@@ -72,7 +108,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         </div>
 
         {/* Expense / Income Toggle */}
-        <div className="flex bg-[#e9edff] p-1 rounded-2xl">
+        <div className="flex bg-[#e9edff] dark:bg-black/20 p-1 rounded-2xl">
           <button
             type="button"
             onClick={() => {
@@ -103,7 +139,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
             <label className="block text-[12px] font-medium text-text-secondary mb-1">
               Title / Merchant
@@ -114,7 +150,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               placeholder="e.g. Supermart Groceries"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-3 bg-bg-tertiary rounded-2xl text-[14px] outline-none focus:ring-2 focus:ring-[#0058be]"
+              className="w-full px-4 py-2.5 bg-bg-tertiary rounded-2xl text-[14px] outline-none focus:ring-2 focus:ring-[#0058be]"
             />
           </div>
 
@@ -124,12 +160,12 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             </label>
             <input
               type="number"
-              step="0.01"
+              step="any"
               required
               placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full px-4 py-3 bg-bg-tertiary rounded-2xl text-[16px] font-bold text-text-primary outline-none focus:ring-2 focus:ring-[#0058be]"
+              className="w-full px-4 py-2.5 bg-bg-tertiary rounded-2xl text-[16px] font-bold text-text-primary outline-none focus:ring-2 focus:ring-[#0058be]"
             />
           </div>
 
@@ -137,7 +173,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             <label className="block text-[12px] font-medium text-text-secondary mb-1">
               Category
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto p-1">
               {categories
                 .filter((cat) => type === 'income' 
                   ? ['salary', 'freelance', 'investment', 'other_income'].includes(cat.id) 
@@ -148,7 +184,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                   key={cat.id}
                   type="button"
                   onClick={() => setCategoryId(cat.id)}
-                  className={`p-3 rounded-2xl border text-left flex items-center gap-2 transition-all ${
+                  className={`p-2.5 rounded-2xl border text-left flex items-center gap-2 transition-all ${
                     categoryId === cat.id
                       ? 'border-[#2170e4] bg-[#2170e4]/10 text-[#0058be] font-bold'
                       : 'border-border-color bg-bg-tertiary text-text-secondary'
@@ -158,13 +194,30 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                     className="w-3 h-3 rounded-full shrink-0"
                     style={{ backgroundColor: cat.color }}
                   />
-                  <span className="text-[13px] truncate">{cat.name}</span>
+                  <span className="text-[12px] truncate">{cat.name}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-[12px] font-medium text-text-secondary mb-1">
+                Payment Method
+              </label>
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="w-full px-3 py-2.5 bg-bg-tertiary rounded-2xl text-[13px] outline-none text-text-primary"
+              >
+                {PAYMENT_METHODS.map((pm) => (
+                  <option key={pm} value={pm}>
+                    {pm}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div>
               <label className="block text-[12px] font-medium text-text-secondary mb-1">
                 Date
@@ -173,16 +226,29 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 type="date"
                 value={rawDate}
                 onChange={(e) => setRawDate(e.target.value)}
-                className="w-full px-3 py-3 bg-bg-tertiary rounded-2xl text-[13px] outline-none"
+                className="w-full px-3 py-2.5 bg-bg-tertiary rounded-2xl text-[13px] outline-none text-text-primary"
               />
             </div>
           </div>
 
+          <div>
+            <label className="block text-[12px] font-medium text-text-secondary mb-1">
+              Notes (Optional)
+            </label>
+            <input
+              type="text"
+              placeholder="Add notes or description..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full px-4 py-2 bg-bg-tertiary rounded-2xl text-[13px] outline-none focus:ring-2 focus:ring-[#0058be]"
+            />
+          </div>
+
           <button
             type="submit"
-            className="w-full py-4 bg-[#000000] text-white font-semibold rounded-full hover:bg-black/80 transition-all active:scale-95 shadow-md mt-2"
+            className="w-full py-3.5 bg-[#000000] dark:bg-[#2170e4] text-white font-semibold rounded-full hover:opacity-90 transition-all active:scale-95 shadow-md mt-2"
           >
-            Save Transaction
+            {initialData ? 'Update Transaction' : 'Save Transaction'}
           </button>
         </form>
       </div>

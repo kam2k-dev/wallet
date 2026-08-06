@@ -25,6 +25,7 @@ export interface DbCategory {
   color: string;
   bgHex: string;
   icon: string;
+  budget?: number;
 }
 
 interface DbShape {
@@ -169,6 +170,25 @@ export const dummyDb = {
     return tx;
   },
 
+  async updateTransaction(tx: DbTransaction): Promise<DbTransaction | null> {
+    const db = read();
+    const idx = db.transactions.findIndex((t) => t.id === tx.id);
+    if (idx === -1) return null;
+    const oldTx = db.transactions[idx];
+    
+    // Adjust old category amount
+    const oldCat = db.categories.find((c) => c.id === oldTx.categoryId);
+    if (oldCat) oldCat.amount = Math.max(0, oldCat.amount - Math.abs(oldTx.amount));
+
+    // Adjust new category amount
+    const newCat = db.categories.find((c) => c.id === tx.categoryId);
+    if (newCat) newCat.amount += Math.abs(tx.amount);
+
+    db.transactions[idx] = tx;
+    write(db);
+    return tx;
+  },
+
   async deleteTransaction(id: string): Promise<boolean> {
     const db = read();
     const idx = db.transactions.findIndex((t) => t.id === id);
@@ -178,6 +198,18 @@ export const dummyDb = {
     if (cat) cat.amount = Math.max(0, cat.amount - Math.abs(removed.amount));
     write(db);
     return true;
+  },
+
+  async addCategory(cat: DbCategory): Promise<DbCategory> {
+    const db = read();
+    const existingIdx = db.categories.findIndex((c) => c.id === cat.id);
+    if (existingIdx >= 0) {
+      db.categories[existingIdx] = cat;
+    } else {
+      db.categories.push(cat);
+    }
+    write(db);
+    return cat;
   },
 
   async updateCategories(categories: DbCategory[]): Promise<void> {

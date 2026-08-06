@@ -53,6 +53,53 @@ async function startServer() {
     }
   });
 
+  // PUT update a transaction
+  app.put("/api/transactions/:id", async (req, res) => {
+    try {
+      const tx = req.body;
+      if (!tx || !tx.id || !tx.title || typeof tx.amount !== "number") {
+        return res.status(400).json({ error: "Invalid transaction payload" });
+      }
+      const updated = await (db as any).updateTransaction(tx);
+      if (!updated) return res.status(404).json({ error: "Transaction not found" });
+      res.json(updated);
+    } catch (error: any) {
+      console.error("PUT /api/transactions/:id error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // POST / PUT categories
+  app.post("/api/categories", async (req, res) => {
+    try {
+      const cat = req.body;
+      if (!cat || !cat.id || !cat.name) {
+        return res.status(400).json({ error: "Invalid category payload" });
+      }
+      if ((db as any).addCategory) {
+        await (db as any).addCategory(cat);
+      }
+      res.status(201).json(cat);
+    } catch (error: any) {
+      console.error("POST /api/categories error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.put("/api/categories", async (req, res) => {
+    try {
+      const categories = req.body;
+      if (!Array.isArray(categories)) {
+        return res.status(400).json({ error: "Expected array of categories" });
+      }
+      await db.updateCategories(categories);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("PUT /api/categories error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // DELETE a transaction by id
   app.delete("/api/transactions/:id", async (req, res) => {
     try {

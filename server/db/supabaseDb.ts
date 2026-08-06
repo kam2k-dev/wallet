@@ -100,6 +100,64 @@ export const supabaseDb = {
     return tx;
   },
 
+  async updateTransaction(tx: DbTransaction): Promise<DbTransaction | null> {
+    const sb = getClient();
+    const { data: oldTx } = await sb
+      .from("transactions")
+      .select("*")
+      .eq("id", tx.id)
+      .single();
+    if (!oldTx) return null;
+
+    const { error } = await sb
+      .from("transactions")
+      .update({
+        title: tx.title,
+        category_id: tx.categoryId,
+        category_name: tx.categoryName,
+        date: tx.date,
+        raw_date: tx.rawDate,
+        amount: tx.amount,
+        payment_method: tx.paymentMethod,
+        icon_url: tx.iconUrl ?? null,
+        notes: tx.notes ?? null,
+      })
+      .eq("id", tx.id);
+    if (error) throw error;
+
+    // Adjust old category
+    const { data: oldCat } = await sb
+      .from("categories")
+      .select("amount")
+      .eq("id", oldTx.category_id)
+      .single();
+    if (oldCat) {
+      await sb
+        .from("categories")
+        .update({
+          amount: Math.max(0, Number(oldCat.amount) - Math.abs(Number(oldTx.amount))),
+        })
+        .eq("id", oldTx.category_id);
+    }
+
+    // Adjust new category
+    const { data: newCat } = await sb
+      .from("categories")
+      .select("amount")
+      .eq("id", tx.categoryId)
+      .single();
+    if (newCat) {
+      await sb
+        .from("categories")
+        .update({
+          amount: Number(newCat.amount) + Math.abs(tx.amount),
+        })
+        .eq("id", tx.categoryId);
+    }
+
+    return tx;
+  },
+
   async deleteTransaction(id: string): Promise<boolean> {
     const sb = getClient();
     const { data: tx } = await sb

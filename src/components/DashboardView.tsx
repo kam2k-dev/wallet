@@ -6,20 +6,26 @@ interface DashboardViewProps {
   categories: Category[];
   transactions: Transaction[];
   totalBalance: number;
+  totalIncome: number;
+  totalExpense: number;
   currency: CurrencyCode;
   onSelectCategory: (categoryId: CategoryId) => void;
   onSelectTransaction: (transaction: Transaction) => void;
   onSeeAllTransactions: () => void;
+  onAddCategory?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   categories,
   transactions,
   totalBalance,
+  totalIncome,
+  totalExpense,
   currency,
   onSelectCategory,
   onSelectTransaction,
   onSeeAllTransactions,
+  onAddCategory,
 }) => {
   const [showBalance, setShowBalance] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -54,11 +60,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     : categories.filter(cat => !hiddenCategories.has(cat.id));
 
   return (
-    <main className="px-5 space-y-6 pt-2 pb-28 max-w-md mx-auto">
+    <main className="px-5 space-y-5 pt-2 pb-28 max-w-md mx-auto">
       {/* Main Balance Section */}
-      <section className="space-y-1">
+      <section className="bg-bg-secondary p-5 rounded-3xl border border-border-color shadow-sm space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-text-secondary text-[14px] leading-[20px]">Main balance</p>
+          <p className="text-text-secondary text-[13px] font-medium">Total Balance</p>
           <button
             onClick={() => setShowBalance(!showBalance)}
             className="text-text-secondary hover:text-text-primary p-1 transition-colors"
@@ -70,27 +76,68 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </button>
         </div>
         <div className="flex items-baseline gap-2">
-          <h1 className="font-bold text-[28px] leading-[36px] text-text-primary tracking-tight">
+          <h1 className="font-bold text-[28px] leading-[34px] text-text-primary tracking-tight">
             {showBalance ? formatCurrency(totalBalance, currency) : '••••••••'}
           </h1>
+        </div>
+
+        {/* Income & Expense Summary Pills */}
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border-color">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-[#27AE60]/10 text-[#27AE60] flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[16px]">arrow_downward</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] text-text-secondary">Income</p>
+              <p className="text-[13px] font-bold text-[#27AE60] truncate">
+                {showBalance ? formatCurrency(totalIncome, currency) : '••••'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-[#ba1a1a]/10 text-[#ba1a1a] flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] text-text-secondary">Expense</p>
+              <p className="text-[13px] font-bold text-[#ba1a1a] truncate">
+                {showBalance ? formatCurrency(totalExpense, currency) : '••••'}
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Category Cards Grid */}
-      <section className="space-y-4">
+      <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-[16px] leading-[24px] text-text-primary">Categories</h2>
-          <button
-            onClick={() => setIsEditMode(!isEditMode)}
-            className="text-[#0058be] text-[12px] font-medium hover:underline"
-          >
-            {isEditMode ? 'Done' : 'Edit'}
-          </button>
+          <div className="flex items-center gap-3">
+            {onAddCategory && (
+              <button
+                onClick={onAddCategory}
+                className="text-[#0058be] text-[12px] font-medium hover:underline flex items-center gap-0.5"
+              >
+                <span className="material-symbols-outlined text-[14px]">add</span>
+                New
+              </button>
+            )}
+            <button
+              onClick={() => setIsEditMode(!isEditMode)}
+              className="text-[#0058be] text-[12px] font-medium hover:underline"
+            >
+              {isEditMode ? 'Done' : 'Edit'}
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2.5">
           {visibleCategories.map((cat) => {
             const isHidden = hiddenCategories.has(cat.id);
+            const budgetPct = cat.budget && cat.budget > 0 ? Math.min(100, Math.round((cat.amount / cat.budget) * 100)) : null;
+            const isOverBudget = cat.budget && cat.budget > 0 && cat.amount > cat.budget;
+
             return (
               <div
                 key={cat.id}
@@ -120,6 +167,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <p className="font-semibold text-[14px] leading-[20px] truncate">
                     {formatCurrency(cat.amount, currency)}
                   </p>
+                  {budgetPct !== null && (
+                    <div className="mt-1">
+                      <div className="w-full bg-black/20 h-1 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${isOverBudget ? 'bg-red-400' : 'bg-white/80'}`}
+                          style={{ width: `${budgetPct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 {!isEditMode && (
                   <div className="absolute inset-0 bg-bg-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -131,7 +188,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </section>
 
       {/* Latest Transactions */}
-      <section className="space-y-4 pb-6">
+      <section className="space-y-3 pb-6">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-[16px] leading-[24px] text-text-primary">Latest transaction</h2>
           <button
@@ -142,55 +199,57 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </button>
         </div>
 
-        <div className="space-y-3">
-          {latestTransactions.map((tx) => (
-            <div
-              key={tx.id}
-              onClick={() => onSelectTransaction(tx)}
-              className="flex items-center gap-4 bg-bg-secondary p-3.5 rounded-2xl shadow-sm border border-border-color active-scale transition-all cursor-pointer hover:shadow-md"
-            >
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-[#e9edff] flex items-center justify-center shrink-0">
-                {tx.iconUrl ? (
-                  <img
-                    src={tx.iconUrl}
-                    alt={tx.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      // Fallback icon on error
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                ) : (
-                  <span className="material-symbols-outlined text-[#0058be]">
-                    {tx.categoryId === 'groceries'
-                      ? 'shopping_bag'
-                      : tx.categoryId === 'transport'
-                      ? 'directions_car'
-                      : tx.categoryId === 'entertainment'
-                      ? 'event'
-                      : 'home'}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex-grow min-w-0">
-                <p className="text-[14px] font-semibold text-text-primary truncate">{tx.title}</p>
-                <p className="text-[12px] text-text-secondary truncate">
-                  {tx.date} • {tx.paymentMethod}
-                </p>
-              </div>
-
-              <div className="text-right shrink-0">
-                <p
-                  className={`text-[14px] font-bold ${
-                    tx.amount < 0 ? 'text-[#ba1a1a]' : 'text-text-primary'
-                  }`}
-                >
-                  {formatAmount(tx.amount)}
-                </p>
-              </div>
+        <div className="space-y-2.5">
+          {latestTransactions.length === 0 ? (
+            <div className="text-center py-8 text-text-secondary text-[13px] bg-bg-secondary rounded-2xl border border-border-color">
+              No transactions yet. Tap + to add one!
             </div>
-          ))}
+          ) : (
+            latestTransactions.map((tx) => {
+              const cat = categories.find((c) => c.id === tx.categoryId);
+              return (
+                <div
+                  key={tx.id}
+                  onClick={() => onSelectTransaction(tx)}
+                  className="flex items-center gap-3.5 bg-bg-secondary p-3 rounded-2xl shadow-sm border border-border-color active-scale transition-all cursor-pointer hover:shadow-md"
+                >
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-[#e9edff] dark:bg-black/20 flex items-center justify-center shrink-0">
+                    {tx.iconUrl ? (
+                      <img
+                        src={tx.iconUrl}
+                        alt={tx.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <span className="material-symbols-outlined text-[20px] text-[#0058be]">
+                        {cat?.icon || 'receipt'}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex-grow min-w-0">
+                    <p className="text-[13px] font-semibold text-text-primary truncate">{tx.title}</p>
+                    <p className="text-[11px] text-text-secondary truncate">
+                      {tx.date} • {tx.paymentMethod}
+                    </p>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <p
+                      className={`text-[13px] font-bold ${
+                        tx.amount < 0 ? 'text-[#ba1a1a]' : 'text-[#27AE60]'
+                      }`}
+                    >
+                      {formatAmount(tx.amount)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </section>
     </main>

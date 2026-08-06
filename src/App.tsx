@@ -17,6 +17,7 @@ import { WalletDetailsView } from './components/WalletDetailsView';
 import { ProfileView } from './components/ProfileView';
 import { AddTransactionModal } from './components/AddTransactionModal';
 import { TransactionDetailsModal } from './components/TransactionDetailsModal';
+import { AddCategoryModal } from './components/AddCategoryModal';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<ViewTab>('dashboard'); // Default to Dashboard (home) screen
@@ -24,6 +25,8 @@ export default function App() {
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [currency, setCurrency] = useState<CurrencyCode>('IDR');
@@ -105,10 +108,24 @@ export default function App() {
     }, 3000);
   };
 
-  // Recalculate spending totals
-  const totalSpending = useMemo(() => {
-    return categories.reduce((sum, cat) => sum + cat.amount, 0);
-  }, [categories]);
+  // Recalculate spending totals & balance accurately from transactions
+  const totalIncome = useMemo(() => {
+    return transactions
+      .filter((t) => t.amount > 0)
+      .reduce((sum, t) => sum + t.amount, 0);
+  }, [transactions]);
+
+  const totalExpense = useMemo(() => {
+    return transactions
+      .filter((t) => t.amount < 0)
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  }, [transactions]);
+
+  const totalBalance = useMemo(() => {
+    return totalIncome - totalExpense;
+  }, [totalIncome, totalExpense]);
+
+  const totalSpending = totalExpense;
 
   const selectedCategory = useMemo(() => {
     return categories.find((c) => c.id === selectedCategoryId) || categories[0];
@@ -150,6 +167,37 @@ export default function App() {
     showToast(`Added "${newTx.title}" successfully!`);
   };
 
+  const handleUpdateTransaction = async (updatedTx: Transaction) => {
+    const oldTx = transactions.find((t) => t.id === updatedTx.id);
+    if (!oldTx) return;
+
+    try {
+      await api.updateTransaction(updatedTx);
+    } catch (err) {
+      console.warn('Failed to update transaction in API:', err);
+    }
+
+    setTransactions((prev) =>
+      prev.map((t) => (t.id === updatedTx.id ? updatedTx : t))
+    );
+
+    // Recalculate category amounts
+    setCategories((prevCats) =>
+      prevCats.map((cat) => {
+        let amt = cat.amount;
+        if (cat.id === oldTx.categoryId) {
+          amt = Math.max(0, amt - Math.abs(oldTx.amount));
+        }
+        if (cat.id === updatedTx.categoryId) {
+          amt = amt + Math.abs(updatedTx.amount);
+        }
+        return { ...cat, amount: amt };
+      })
+    );
+
+    showToast(`Updated "${updatedTx.title}"`);
+  };
+
   const handleDeleteTransaction = async (id: string) => {
     const txToDelete = transactions.find((t) => t.id === id);
     if (!txToDelete) return;
@@ -176,6 +224,62 @@ export default function App() {
     );
 
     showToast(`Deleted "${txToDelete.title}"`);
+  };
+
+  const handleAddCategory = async (newCat: Category) => {
+    try {
+      await api.addCategory(newCat);
+    } catch (err) {
+      console.warn('Failed to add category to API:', err);
+    }
+    setCategories((prev) => [...prev, newCat]);
+    showToast(`Category "${newCat.name}" created!`);
+  };
+
+  // Export to CSV
+  const handleExportCSV = () => {
+    if (transactions.length === 0) {
+      showToast('No transactions to export');
+      return;
+    }
+    const headers = ['ID', 'Title', 'Category', 'Amount', 'Type', 'Payment Method', 'Date', 'Notes'];
+    const rows = transactions.map((t) => [
+      t.id,
+      `"${t.title.replace(/"/g, '""')}"`,
+      `"${t.categoryName}"`,
+      t.amount,
+      t.amount < 0 ? 'Expense' : 'Income',
+      `"${t.paymentMethod}"`,
+      t.date,
+      `"${(t.notes || '').replace(/"/g, '""')}"`,
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `dompetku_transactions_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Transactions exported to CSV!');
+  };
+
+  // Export to JSON
+  const handleExportJSON = () => {
+    const data = {
+      exportedAt: new Date().toISOString(),
+      currency,
+      categories,
+      transactions,
+    };
+    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
+    const link = document.createElement('a');
+    link.setAttribute('href', jsonString);
+    link.setAttribute('download', `dompetku_backup_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Backup JSON downloaded!');
   };
 
   const handleBackHeader = () => {
@@ -205,11 +309,14 @@ export default function App() {
         <DashboardView
           categories={categories}
           transactions={transactions}
-          totalBalance={totalSpending}
+          totalBalance={totalBalance}
+          totalIncome={totalIncome}
+          totalExpense={totalExpense}
           currency={currency}
           onSelectCategory={handleSelectCategory}
           onSelectTransaction={setSelectedTransaction}
           onSeeAllTransactions={() => setCurrentTab('analysis')}
+          onAddCategory={() => setIsAddCategoryModalOpen(true)}
         />
       )}
 
@@ -229,7 +336,10 @@ export default function App() {
           category={selectedCategory}
           transactions={transactions}
           currency={currency}
-          onOpenAddModal={() => setIsAddModalOpen(true)}
+          onOpenAddModal={() => {
+            setEditingTransaction(null);
+            setIsAddModalOpen(true);
+          }}
           onSelectTransaction={setSelectedTransaction}
           onQuickAction={(actionName) => showToast(`Action: ${actionName}`)}
         />
@@ -242,6 +352,8 @@ export default function App() {
           rates={rates} 
           isDarkMode={isDarkMode}
           onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+          onExportCSV={handleExportCSV}
+          onExportJSON={handleExportJSON}
         />
       )}
 
@@ -249,16 +361,32 @@ export default function App() {
       <BottomNav
         currentTab={currentTab}
         onTabChange={setCurrentTab}
-        onOpenAddModal={() => setIsAddModalOpen(true)}
+        onOpenAddModal={() => {
+          setEditingTransaction(null);
+          setIsAddModalOpen(true);
+        }}
       />
 
-      {/* Add Transaction Modal */}
+      {/* Add / Edit Transaction Modal */}
       <AddTransactionModal
         categories={categories}
         isOpen={isAddModalOpen}
         currency={currency}
-        onClose={() => setIsAddModalOpen(false)}
+        initialData={editingTransaction}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setEditingTransaction(null);
+        }}
         onAddTransaction={handleAddTransaction}
+        onUpdateTransaction={handleUpdateTransaction}
+      />
+
+      {/* Add Category Modal */}
+      <AddCategoryModal
+        isOpen={isAddCategoryModalOpen}
+        currency={currency}
+        onClose={() => setIsAddCategoryModalOpen(false)}
+        onAddCategory={handleAddCategory}
       />
 
       {/* Transaction Details Modal */}
@@ -268,6 +396,10 @@ export default function App() {
         currency={currency}
         onClose={() => setSelectedTransaction(null)}
         onDelete={handleDeleteTransaction}
+        onEdit={(tx) => {
+          setEditingTransaction(tx);
+          setIsAddModalOpen(true);
+        }}
       />
     </div>
   );

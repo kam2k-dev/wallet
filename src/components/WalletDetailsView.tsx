@@ -23,13 +23,29 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [monthOffset, setMonthOffset] = useState(0);
 
-  const months = ['September, 2025', 'August, 2025', 'July, 2025'];
-  const currentMonthName = months[(monthOffset + months.length) % months.length];
+  // Dynamic month calculation
+  const currentMonthDate = useMemo(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - monthOffset);
+    return d;
+  }, [monthOffset]);
 
-  // Filter transactions for this category
-  const categoryTransactions = transactions.filter(
-    (tx) => tx.categoryId === category.id
-  );
+  const currentMonthName = useMemo(() => {
+    return currentMonthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }, [currentMonthDate]);
+
+  // Filter transactions for this category and selected month
+  const categoryTransactions = useMemo(() => {
+    const targetYear = currentMonthDate.getFullYear();
+    const targetMonth = currentMonthDate.getMonth();
+
+    return transactions.filter((tx) => {
+      if (tx.categoryId !== category.id) return false;
+      if (!tx.rawDate) return true;
+      const txDate = new Date(tx.rawDate);
+      return txDate.getFullYear() === targetYear && txDate.getMonth() === targetMonth;
+    });
+  }, [transactions, category.id, currentMonthDate]);
 
   const filteredTransactions = categoryTransactions.filter((tx) => {
     if (!searchQuery.trim()) return true;
@@ -47,33 +63,39 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
 
     // Aggregate transactions by day
     categoryTransactions.forEach((tx) => {
-      const day = parseInt(tx.rawDate.split('-')[2], 10);
-      if (!isNaN(day)) {
-        dailyTotals[day] = (dailyTotals[day] || 0) + Math.abs(tx.amount);
+      if (tx.rawDate) {
+        const parts = tx.rawDate.split('-');
+        const day = parseInt(parts[2], 10);
+        if (!isNaN(day)) {
+          dailyTotals[day] = (dailyTotals[day] || 0) + Math.abs(tx.amount);
+        }
       }
     });
+
+    const monthShort = currentMonthDate.toLocaleDateString('en-US', { month: 'short' });
+    const year = currentMonthDate.getFullYear();
 
     // Convert to chart points
     const points: ChartPoint[] = Object.entries(dailyTotals)
       .map(([day, amount]) => ({
         dayNum: parseInt(day, 10),
-        dateLabel: `Sep ${day}`,
-        fullDate: `Sep ${day}, 2025`,
+        dateLabel: `${monthShort} ${day}`,
+        fullDate: `${monthShort} ${day}, ${year}`,
         amount,
       }))
       .sort((a, b) => a.dayNum - b.dayNum);
 
-    // If no data, return default points
+    // If no data, return default points for the month
     if (points.length === 0) {
       return [
-        { dayNum: 1, dateLabel: 'Sep 1', fullDate: 'Sep 1, 2025', amount: 0 },
-        { dayNum: 7, dateLabel: 'Sep 7', fullDate: 'Sep 7, 2025', amount: 0 },
-        { dayNum: 15, dateLabel: 'Sep 15', fullDate: 'Sep 15, 2025', amount: 0 },
+        { dayNum: 1, dateLabel: `${monthShort} 1`, fullDate: `${monthShort} 1, ${year}`, amount: 0 },
+        { dayNum: 15, dateLabel: `${monthShort} 15`, fullDate: `${monthShort} 15, ${year}`, amount: 0 },
+        { dayNum: 28, dateLabel: `${monthShort} 28`, fullDate: `${monthShort} 28, ${year}`, amount: 0 },
       ];
     }
 
     return points;
-  }, [categoryTransactions]);
+  }, [categoryTransactions, currentMonthDate]);
 
   const activePoint = chartPoints[selectedPointIndex] || chartPoints[0];
 
@@ -235,9 +257,9 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
 
           {/* X Axis Date Labels */}
           <div className="flex justify-between mt-2 text-[11px] text-[#77767b] px-1 font-medium">
-            <span>{chartPoints[0]?.dateLabel || 'Sep 1'}</span>
-            <span>{chartPoints[Math.floor(chartPoints.length / 2)]?.dateLabel || 'Sep 7'}</span>
-            <span>{chartPoints[chartPoints.length - 1]?.dateLabel || 'Sep 15'}</span>
+            <span>{chartPoints[0]?.dateLabel || ''}</span>
+            <span>{chartPoints[Math.floor(chartPoints.length / 2)]?.dateLabel || ''}</span>
+            <span>{chartPoints[chartPoints.length - 1]?.dateLabel || ''}</span>
           </div>
         </div>
       </section>

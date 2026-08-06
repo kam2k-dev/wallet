@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Category, Transaction, CategoryId } from '../types';
 import { CurrencyCode, formatCurrency } from '../utils/currency';
 
@@ -11,6 +11,9 @@ interface SpendAnalysisViewProps {
   onSelectTransaction: (transaction: Transaction) => void;
 }
 
+type TimeFilter = 'all' | 'this_month' | 'last_month' | 'this_year';
+type TypeFilter = 'all' | 'expense' | 'income';
+
 export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
   categories,
   transactions,
@@ -21,45 +24,190 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showPieDetail, setShowPieDetail] = useState(false);
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
 
   const formatAmount = (num: number) => formatCurrency(num, currency);
 
-  // Filter transactions
-  const filteredTransactions = transactions.filter((tx) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      tx.title.toLowerCase().includes(q) ||
-      tx.categoryName.toLowerCase().includes(q) ||
-      tx.date.toLowerCase().includes(q) ||
-      tx.paymentMethod.toLowerCase().includes(q)
-    );
-  });
+  // Filter transactions by time and type
+  const filteredTransactions = useMemo(() => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-indexed
+
+    return transactions.filter((tx) => {
+      // Type filter
+      if (typeFilter === 'expense' && tx.amount >= 0) return false;
+      if (typeFilter === 'income' && tx.amount < 0) return false;
+
+      // Time filter
+      if (tx.rawDate) {
+        const txDate = new Date(tx.rawDate);
+        if (timeFilter === 'this_month') {
+          if (txDate.getFullYear() !== currentYear || txDate.getMonth() !== currentMonth) {
+            return false;
+          }
+        } else if (timeFilter === 'last_month') {
+          const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+          const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+          if (txDate.getFullYear() !== lastMonthYear || txDate.getMonth() !== lastMonth) {
+            return false;
+          }
+        } else if (timeFilter === 'this_year') {
+          if (txDate.getFullYear() !== currentYear) {
+            return false;
+          }
+        }
+      }
+
+      // Search query
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        tx.title.toLowerCase().includes(q) ||
+        tx.categoryName.toLowerCase().includes(q) ||
+        tx.date.toLowerCase().includes(q) ||
+        tx.paymentMethod.toLowerCase().includes(q)
+      );
+    });
+  }, [transactions, timeFilter, typeFilter, searchQuery]);
+
+  // Calculate dynamic spending based on filtered transactions
+  const dynamicSpending = useMemo(() => {
+    return filteredTransactions
+      .filter((t) => t.amount < 0)
+      .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  }, [filteredTransactions]);
+
+  const dynamicIncome = useMemo(() => {
+    return filteredTransactions
+      .filter((t) => t.amount > 0)
+      .reduce((sum, t) => sum + t.amount, 0);
+  }, [filteredTransactions]);
+
+  // Calculate category breakdown from filtered transactions
+  const categoryBreakdown = useMemo(() => {
+    const map: Record<string, number> = {};
+    filteredTransactions.forEach((tx) => {
+      if (typeFilter === 'income') {
+        if (tx.amount > 0) {
+          map[tx.categoryId] = (map[tx.categoryId] || 0) + tx.amount;
+        }
+      } else if (typeFilter === 'expense') {
+        if (tx.amount < 0) {
+          map[tx.categoryId] = (map[tx.categoryId] || 0) + Math.abs(tx.amount);
+        }
+      } else {
+        // 'all': include both income and expense amounts
+        map[tx.categoryId] = (map[tx.categoryId] || 0) + Math.abs(tx.amount);
+      }
+    });
+    return categories.map((cat) => ({
+      ...cat,
+      filteredAmount: map[cat.id] || 0,
+    }));
+  }, [categories, filteredTransactions, typeFilter]);
 
   // Calculate percentages for segmented bar
+  const totalRelevantAmount = typeFilter === 'income' ? dynamicIncome : (typeFilter === 'expense' ? dynamicSpending : (dynamicSpending + dynamicIncome));
+
   const getPercentage = (amount: number) => {
-    if (!totalSpending || totalSpending <= 0) return 25;
-    return Math.max(5, Math.round((amount / totalSpending) * 100));
+    if (!totalRelevantAmount || totalRelevantAmount <= 0) return 0;
+    return Math.round((amount / totalRelevantAmount) * 100);
   };
 
+  // Top category insight
+  const topCategory = useMemo(() => {
+    const sorted = [...categoryBreakdown].sort((a, b) => b.filteredAmount - a.filteredAmount);
+    return sorted[0]?.filteredAmount > 0 ? sorted[0] : null;
+  }, [categoryBreakdown]);
+
   return (
-    <main className="max-w-md mx-auto px-5 pt-4 space-y-6 pb-28">
-      {/* Total Spending Section */}
-      <section className="space-y-4">
+    <main className="max-w-md mx-auto px-5 pt-4 space-y-5 pb-28">
+      {/* Time & Type Filter Pills */}
+      <section className="space-y-2">
+        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          {(
+            [
+              { id: 'all', label: 'All Time' },
+              { id: 'this_month', label: 'This Month' },
+              { id: 'last_month', label: 'Last Month' },
+              { id: 'this_year', label: 'This Year' },
+            ] as const
+          ).map((tf) => (
+            <button
+              key={tf.id}
+              onClick={() => setTimeFilter(tf.id)}
+              className={`px-3 py-1.5 rounded-full text-[12px] font-medium whitespace-nowrap transition-all ${
+                timeFilter === tf.id
+                  ? 'bg-[#0058be] text-white shadow-sm'
+                  : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary border border-border-color'
+              }`}
+            >
+              {tf.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex gap-1.5">
+          {(
+            [
+              { id: 'all', label: 'All Types' },
+              { id: 'expense', label: 'Expenses Only' },
+              { id: 'income', label: 'Income Only' },
+            ] as const
+          ).map((tf) => (
+            <button
+              key={tf.id}
+              onClick={() => setTypeFilter(tf.id)}
+              className={`flex-1 py-1.5 rounded-xl text-[12px] font-medium transition-all ${
+                typeFilter === tf.id
+                  ? 'bg-text-primary text-bg-primary font-semibold shadow-sm'
+                  : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary border border-border-color'
+              }`}
+            >
+              {tf.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Total Spending / Income Section */}
+      <section className="bg-bg-secondary p-5 rounded-3xl border border-border-color shadow-sm space-y-4">
         <div className="flex justify-between items-end">
           <div>
-            <p className="text-[14px] leading-[20px] text-text-secondary">Total spending</p>
-            <h2 className="font-bold text-[28px] leading-[36px] text-text-primary mt-1">
-              {formatCurrency(totalSpending, currency)}
+            <p className="text-[13px] text-text-secondary">
+              {typeFilter === 'income'
+                ? 'Total Income'
+                : typeFilter === 'expense'
+                ? 'Total Spending'
+                : 'Net Flow (Income - Expense)'}
+            </p>
+            <h2 className="font-bold text-[26px] leading-[32px] text-text-primary mt-0.5">
+              {typeFilter === 'income'
+                ? formatCurrency(dynamicIncome, currency)
+                : typeFilter === 'expense'
+                ? formatCurrency(dynamicSpending, currency)
+                : formatCurrency(dynamicIncome - dynamicSpending, currency)}
             </h2>
+            {typeFilter === 'all' && (
+              <div className="flex gap-3 mt-1 text-[12px]">
+                <span className="text-[#27AE60] font-medium">
+                  +{formatCurrency(dynamicIncome, currency)}
+                </span>
+                <span className="text-[#ba1a1a] font-medium">
+                  -{formatCurrency(dynamicSpending, currency)}
+                </span>
+              </div>
+            )}
           </div>
           <button
             onClick={() => setShowPieDetail(!showPieDetail)}
             aria-label="Toggle Pie Chart"
-            className="p-3 rounded-full bg-[#e1e8fd] text-text-secondary hover:bg-[#dce2f7] active:scale-95 transition-all shadow-sm"
+            className="p-2.5 rounded-full bg-[#e1e8fd] dark:bg-black/20 text-text-secondary hover:bg-[#dce2f7] active:scale-95 transition-all shadow-sm"
           >
             <span
-              className={`material-symbols-outlined ${
+              className={`material-symbols-outlined text-[20px] ${
                 showPieDetail ? 'fill-1 text-[#0058be]' : ''
               }`}
             >
@@ -69,68 +217,84 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
         </div>
 
         {/* Segmented Progress Bar */}
-        <div className="h-4 w-full flex rounded-full overflow-hidden bg-black/5 p-0.5">
-          {categories.map((cat, idx) => {
-            const pct = getPercentage(cat.amount);
-            return (
-              <div
-                key={cat.id}
-                className={`h-full transition-all duration-300 ${
-                  idx > 0 ? 'ml-[2px]' : ''
-                }`}
-                style={{
-                  width: `${pct}%`,
-                  backgroundColor: cat.color,
-                }}
-                title={`${cat.name}: ${pct}%`}
-              />
-            );
-          })}
-        </div>
+        {totalRelevantAmount > 0 && (
+          <div className="h-3.5 w-full flex rounded-full overflow-hidden bg-black/5 dark:bg-white/5 p-0.5">
+            {categoryBreakdown
+              .filter((cat) => cat.filteredAmount > 0)
+              .map((cat, idx) => {
+                const pct = getPercentage(cat.filteredAmount);
+                return (
+                  <div
+                    key={cat.id}
+                    className={`h-full transition-all duration-300 ${idx > 0 ? 'ml-[2px]' : ''}`}
+                    style={{
+                      width: `${pct}%`,
+                      backgroundColor: cat.color,
+                    }}
+                    title={`${cat.name}: ${pct}%`}
+                  />
+                );
+              })}
+          </div>
+        )}
+
+        {/* Smart Insight */}
+        {topCategory && (
+          <div className="flex items-center gap-2 p-2.5 bg-bg-primary rounded-2xl text-[12px] text-text-secondary border border-border-color">
+            <span className="material-symbols-outlined text-[#0058be] text-[18px]">insights</span>
+            <span>
+              Highest {typeFilter === 'income' ? 'income' : 'activity'} in{' '}
+              <strong className="text-text-primary">{topCategory.name}</strong> (
+              {getPercentage(topCategory.filteredAmount)}% of total)
+            </span>
+          </div>
+        )}
 
         {/* Optional Pie Detail Breakdown */}
         {showPieDetail && (
-          <div className="bg-bg-secondary p-4 rounded-xl border border-border-color shadow-sm space-y-2 animate-in fade-in">
-            <h4 className="text-[13px] font-semibold text-text-primary">Percentage Distribution</h4>
-            <div className="grid grid-cols-2 gap-2 text-[12px]">
-              {categories.map((cat) => (
-                <div key={cat.id} className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-text-secondary">
-                    <span
-                      className="w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: cat.color }}
-                    />
-                    {cat.name}
-                  </span>
-                  <span className="font-semibold text-text-primary">
-                    {getPercentage(cat.amount)}%
-                  </span>
-                </div>
-              ))}
+          <div className="bg-bg-primary p-3.5 rounded-2xl border border-border-color shadow-sm space-y-2 animate-in fade-in">
+            <h4 className="text-[12px] font-semibold text-text-primary">Percentage Distribution</h4>
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              {categoryBreakdown
+                .filter((cat) => cat.filteredAmount > 0)
+                .map((cat) => (
+                  <div key={cat.id} className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-text-secondary truncate">
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: cat.color }}
+                      />
+                      <span className="truncate">{cat.name}</span>
+                    </span>
+                    <span className="font-semibold text-text-primary shrink-0">
+                      {getPercentage(cat.filteredAmount)}%
+                    </span>
+                  </div>
+                ))}
             </div>
           </div>
         )}
       </section>
 
       {/* Category Grid */}
-      <section className="grid grid-cols-2 gap-3">
-        {categories.map((cat) => (
+      <section className="grid grid-cols-2 gap-2.5">
+        {categoryBreakdown.map((cat) => (
           <div
             key={cat.id}
             onClick={() => onSelectCategory(cat.id)}
-            className="bg-bg-secondary p-4 rounded-xl shadow-soft flex flex-col space-y-2 border border-[#dce2f7] cursor-pointer hover:border-[#2170e4]/50 active:scale-98 transition-all"
+            className="bg-bg-secondary p-3.5 rounded-2xl shadow-sm flex flex-col space-y-1.5 border border-border-color cursor-pointer hover:border-[#2170e4]/50 active:scale-98 transition-all"
           >
             <div className="flex items-center space-x-2">
               <div
-                className="w-2.5 h-2.5 rounded-full"
+                className="w-2.5 h-2.5 rounded-full shrink-0"
                 style={{ backgroundColor: cat.color }}
               />
               <span className="text-[12px] font-medium text-text-secondary truncate">
                 {cat.name}
               </span>
             </div>
-            <span className="font-semibold text-[16px] leading-[24px] text-text-primary">
-              {formatCurrency(cat.amount, currency)}
+            <span className="font-semibold text-[15px] leading-[22px] text-text-primary truncate">
+              {formatCurrency(cat.filteredAmount, currency)}
             </span>
           </div>
         ))}
@@ -146,7 +310,7 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search for any transaction"
-          className="w-full h-12 pl-12 pr-4 bg-[#e9edff] rounded-full border-none focus:ring-2 focus:ring-[#0058be] text-[14px] placeholder:text-[#77767b] outline-none"
+          className="w-full h-11 pl-11 pr-4 bg-bg-secondary rounded-full border border-border-color focus:ring-2 focus:ring-[#0058be] text-[13px] placeholder:text-[#77767b] outline-none text-text-primary"
         />
         {searchQuery && (
           <button
@@ -159,61 +323,64 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
       </section>
 
       {/* Transaction List */}
-      <section className="space-y-4">
-        <h3 className="font-semibold text-[16px] leading-[24px] text-text-primary">
-          Latest transactions
+      <section className="space-y-3">
+        <h3 className="font-semibold text-[15px] leading-[22px] text-text-primary">
+          Transactions ({filteredTransactions.length})
         </h3>
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {filteredTransactions.length === 0 ? (
-            <div className="text-center py-8 text-text-secondary text-[14px]">
-              No transactions match "{searchQuery}"
+            <div className="text-center py-8 text-text-secondary text-[13px] bg-bg-secondary rounded-2xl border border-border-color">
+              No transactions found
             </div>
           ) : (
-            filteredTransactions.map((tx) => (
-              <div
-                key={tx.id}
-                onClick={() => onSelectTransaction(tx)}
-                className="flex items-center justify-between p-2 rounded-xl hover:bg-black/5 transition-colors cursor-pointer"
-              >
-                <div className="flex items-center space-x-3 min-w-0">
-                  <div className="w-12 h-12 rounded-full bg-bg-secondary flex items-center justify-center shadow-sm overflow-hidden shrink-0 border border-border-color">
-                    {tx.iconUrl ? (
-                      <img
-                        src={tx.iconUrl}
-                        alt={tx.title}
-                        className="w-8 h-8 object-contain"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <span className="material-symbols-outlined text-[#0058be]">
-                        {tx.categoryId === 'groceries'
-                          ? 'shopping_bag'
-                          : tx.categoryId === 'transport'
-                          ? 'directions_car'
-                          : tx.categoryId === 'entertainment'
-                          ? 'event'
-                          : 'home'}
-                      </span>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-[16px] leading-[24px] text-text-primary truncate">
-                      {tx.title}
-                    </p>
-                    <p className="text-[12px] text-text-secondary truncate">{tx.date}</p>
-                  </div>
-                </div>
+            filteredTransactions.map((tx) => {
+              const cat = categories.find((c) => c.id === tx.categoryId);
+              return (
+                <div
+                  key={tx.id}
+                  onClick={() => onSelectTransaction(tx)}
+                  className="flex items-center justify-between p-3 rounded-2xl bg-bg-secondary border border-border-color hover:shadow-sm transition-all cursor-pointer"
+                >
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-bg-tertiary flex items-center justify-center shadow-sm overflow-hidden shrink-0 border border-border-color">
+                      {tx.iconUrl ? (
+                        <img
+                          src={tx.iconUrl}
+                          alt={tx.title}
+                          className="w-7 h-7 object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <span className="material-symbols-outlined text-[20px] text-[#0058be]">
+                          {cat?.icon || 'receipt'}
+                        </span>
+                      )}
+                    </div>
 
-                <div className="text-right shrink-0">
-                  <p className="font-semibold text-[16px] leading-[24px] text-text-primary">
-                    {formatAmount(tx.amount)}
-                  </p>
-                  <p className="text-[12px] text-text-secondary">{tx.paymentMethod}</p>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-[14px] leading-[20px] text-text-primary truncate">
+                        {tx.title}
+                      </p>
+                      <p className="text-[11px] text-text-secondary truncate">
+                        {tx.date} • {tx.paymentMethod}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <p
+                      className={`font-semibold text-[14px] leading-[20px] ${
+                        tx.amount < 0 ? 'text-[#ba1a1a]' : 'text-[#27AE60]'
+                      }`}
+                    >
+                      {formatAmount(tx.amount)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </section>
