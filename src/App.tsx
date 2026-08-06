@@ -334,8 +334,10 @@ export default function App() {
       {currentTab === 'wallet' && (
         <WalletDetailsView
           category={selectedCategory}
+          categories={categories}
           transactions={transactions}
           currency={currency}
+          onSelectCategory={setSelectedCategoryId}
           onOpenAddModal={() => {
             setEditingTransaction(null);
             setIsAddModalOpen(true);

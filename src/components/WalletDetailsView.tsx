@@ -4,8 +4,10 @@ import { CurrencyCode, formatCurrency } from '../utils/currency';
 
 interface WalletDetailsViewProps {
   category: Category;
+  categories: Category[];
   transactions: Transaction[];
   currency: CurrencyCode;
+  onSelectCategory: (categoryId: CategoryId) => void;
   onOpenAddModal: () => void;
   onSelectTransaction: (transaction: Transaction) => void;
   onQuickAction: (actionName: string) => void;
@@ -13,8 +15,10 @@ interface WalletDetailsViewProps {
 
 export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
   category,
-  transactions,
+  categories = [],
+  transactions = [],
   currency,
+  onSelectCategory,
   onOpenAddModal,
   onSelectTransaction,
   onQuickAction,
@@ -22,6 +26,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
   const [selectedPointIndex, setSelectedPointIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [monthOffset, setMonthOffset] = useState(0);
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
 
   // Dynamic month calculation
   const currentMonthDate = useMemo(() => {
@@ -132,9 +137,87 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
   const activeCoord = pointsWithCoords[selectedPointIndex];
 
   return (
-    <main className="pt-2 px-5 space-y-6 pb-36 max-w-md mx-auto">
+    <main className="pt-2 px-5 space-y-5 pb-36 max-w-md mx-auto">
+      {/* Category Selector Bar */}
+      <section className="space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">
+            Select Category
+          </p>
+          <button
+            onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+            className="text-[12px] text-[#0058be] font-medium hover:underline flex items-center gap-0.5"
+          >
+            <span>{isCategoryDropdownOpen ? 'Hide List' : 'View All'}</span>
+            <span className="material-symbols-outlined text-[16px]">
+              {isCategoryDropdownOpen ? 'expand_less' : 'expand_more'}
+            </span>
+          </button>
+        </div>
+
+        {/* Horizontal Category Pills */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {categories.map((cat) => {
+            const isSelected = cat.id === category.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => onSelectCategory(cat.id)}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl whitespace-nowrap transition-all text-[13px] font-medium border ${
+                  isSelected
+                    ? 'bg-text-primary text-bg-primary border-transparent shadow-sm'
+                    : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary border-border-color'
+                }`}
+              >
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: cat.color }}
+                />
+                <span>{cat.name}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Expanded Category Grid Dropdown */}
+        {isCategoryDropdownOpen && (
+          <div className="grid grid-cols-2 gap-2 p-3 bg-bg-secondary rounded-2xl border border-border-color shadow-sm animate-in fade-in">
+            {categories.map((cat) => {
+              const isSelected = cat.id === category.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    onSelectCategory(cat.id);
+                    setIsCategoryDropdownOpen(false);
+                  }}
+                  className={`flex items-center gap-2.5 p-2.5 rounded-xl text-left transition-all ${
+                    isSelected
+                      ? 'bg-[#2170e4]/10 border border-[#2170e4]/40 text-[#0058be] font-bold'
+                      : 'hover:bg-bg-primary border border-transparent text-text-primary'
+                  }`}
+                >
+                  <div
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0"
+                    style={{ backgroundColor: cat.color }}
+                  >
+                    <span className="material-symbols-outlined text-[16px]">{cat.icon}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[12px] truncate">{cat.name}</p>
+                    <p className="text-[11px] text-text-secondary truncate">
+                      {formatCurrency(cat.amount, currency)}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
       {/* Header Card */}
-      <section className="mt-2">
+      <section className="bg-bg-secondary p-4 rounded-3xl border border-border-color shadow-sm">
         <div className="flex items-center gap-4">
           <div
             className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-sm shrink-0"
@@ -144,11 +227,11 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
               {category.icon}
             </span>
           </div>
-          <div>
-            <p className="text-[#77767b] text-[14px] leading-[20px] font-medium">
+          <div className="min-w-0">
+            <p className="text-text-secondary text-[13px] font-medium truncate">
               {category.name}
             </p>
-            <p className="font-bold text-[28px] leading-[36px] tracking-tight text-text-primary">
+            <p className="font-bold text-[26px] leading-[32px] tracking-tight text-text-primary truncate">
               {formatCurrency(category.amount, currency)}
             </p>
           </div>
