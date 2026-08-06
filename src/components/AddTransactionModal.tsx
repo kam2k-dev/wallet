@@ -28,6 +28,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   const [categoryId, setCategoryId] = useState<CategoryId>('groceries');
   const [type, setType] = useState<'expense' | 'income'>('expense');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [isPaymentMenuOpen, setIsPaymentMenuOpen] = useState(false);
   const [notes, setNotes] = useState('');
   const [rawDate, setRawDate] = useState(() => new Date().toISOString().split('T')[0]);
 
@@ -108,7 +109,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         </div>
 
         {/* Expense / Income Toggle */}
-        <div className="flex bg-[#e9edff] dark:bg-black/20 p-1 rounded-2xl">
+        <div className="flex bg-bg-tertiary p-1 rounded-2xl border border-border-color">
           <button
             type="button"
             onClick={() => {
@@ -201,21 +202,66 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <div>
+            {/* Custom Payment Method Dropdown */}
+            <div className="relative">
               <label className="block text-[12px] font-medium text-text-secondary mb-1">
                 Payment Method
               </label>
-              <select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="w-full px-3 py-2.5 bg-bg-tertiary rounded-2xl text-[13px] outline-none text-text-primary"
+              <button
+                type="button"
+                onClick={() => setIsPaymentMenuOpen(!isPaymentMenuOpen)}
+                className={`w-full px-3.5 py-2.5 bg-bg-tertiary rounded-2xl text-[13px] font-medium text-text-primary flex items-center justify-between border transition-all ${
+                  isPaymentMenuOpen
+                    ? 'border-[#0058be] ring-2 ring-[#0058be]/20'
+                    : 'border-transparent hover:border-border-color'
+                }`}
               >
-                {PAYMENT_METHODS.map((pm) => (
-                  <option key={pm} value={pm}>
-                    {pm}
-                  </option>
-                ))}
-              </select>
+                <span className="truncate">{paymentMethod}</span>
+                <span
+                  className={`material-symbols-outlined text-[18px] text-text-secondary shrink-0 transition-transform duration-200 ${
+                    isPaymentMenuOpen ? 'rotate-180' : ''
+                  }`}
+                >
+                  expand_more
+                </span>
+              </button>
+
+              {/* Floating Menu */}
+              {isPaymentMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsPaymentMenuOpen(false)}
+                  />
+                  <div className="absolute left-0 right-0 bottom-full mb-1.5 max-h-48 overflow-y-auto bg-bg-secondary rounded-2xl border border-border-color shadow-xl p-1.5 z-50 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
+                    {PAYMENT_METHODS.map((pm) => {
+                      const isSelected = paymentMethod === pm;
+                      return (
+                        <button
+                          key={pm}
+                          type="button"
+                          onClick={() => {
+                            setPaymentMethod(pm);
+                            setIsPaymentMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[12px] font-medium transition-colors ${
+                            isSelected
+                              ? 'bg-[#0058be]/10 text-[#0058be] font-semibold'
+                              : 'text-text-primary hover:bg-bg-tertiary'
+                          }`}
+                        >
+                          <span>{pm}</span>
+                          {isSelected && (
+                            <span className="material-symbols-outlined text-[16px] text-[#0058be]">
+                              check
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
 
             <div>
@@ -226,7 +272,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 type="date"
                 value={rawDate}
                 onChange={(e) => setRawDate(e.target.value)}
-                className="w-full px-3 py-2.5 bg-bg-tertiary rounded-2xl text-[13px] outline-none text-text-primary"
+                className="w-full px-3.5 py-2.5 bg-bg-tertiary rounded-2xl text-[13px] font-medium outline-none text-text-primary border border-transparent focus:border-[#0058be] focus:ring-2 focus:ring-[#0058be]/20 transition-all"
               />
             </div>
           </div>

@@ -19,6 +19,11 @@ import { AddTransactionModal } from './components/AddTransactionModal';
 import { TransactionDetailsModal } from './components/TransactionDetailsModal';
 import { AddCategoryModal } from './components/AddCategoryModal';
 
+interface ToastState {
+  message: string;
+  type?: 'success' | 'info' | 'error' | 'delete';
+}
+
 export default function App() {
   const [currentTab, setCurrentTab] = useState<ViewTab>('dashboard'); // Default to Dashboard (home) screen
   const [selectedCategoryId, setSelectedCategoryId] = useState<CategoryId>('groceries');
@@ -28,7 +33,7 @@ export default function App() {
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastState | null>(null);
   const [currency, setCurrency] = useState<CurrencyCode>('IDR');
   const [rates, setRates] = useState<Record<CurrencyCode, number>>(FALLBACK_RATES);
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -98,13 +103,13 @@ export default function App() {
     );
 
     setCurrency(newCurrency);
-    showToast(`Currency updated to ${newCurrency} (Rate applied)`);
+    showToast(`Currency updated to ${newCurrency}`, 'info');
   };
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
+  const showToast = (message: string, type: 'success' | 'info' | 'error' | 'delete' = 'success') => {
+    setToast({ message, type });
     setTimeout(() => {
-      setToastMessage((current) => (current === msg ? null : current));
+      setToast((current) => (current?.message === message ? null : current));
     }, 3000);
   };
 
@@ -164,7 +169,7 @@ export default function App() {
       })
     );
 
-    showToast(`Added "${newTx.title}" successfully!`);
+    showToast(`Added "${newTx.title}" successfully!`, 'success');
   };
 
   const handleUpdateTransaction = async (updatedTx: Transaction) => {
@@ -195,7 +200,7 @@ export default function App() {
       })
     );
 
-    showToast(`Updated "${updatedTx.title}"`);
+    showToast(`Updated "${updatedTx.title}"`, 'info');
   };
 
   const handleDeleteTransaction = async (id: string) => {
@@ -223,7 +228,7 @@ export default function App() {
       })
     );
 
-    showToast(`Deleted "${txToDelete.title}"`);
+    showToast(`Deleted "${txToDelete.title}"`, 'delete');
   };
 
   const handleAddCategory = async (newCat: Category) => {
@@ -233,13 +238,13 @@ export default function App() {
       console.warn('Failed to add category to API:', err);
     }
     setCategories((prev) => [...prev, newCat]);
-    showToast(`Category "${newCat.name}" created!`);
+    showToast(`Category "${newCat.name}" created!`, 'success');
   };
 
   // Export to CSV
   const handleExportCSV = () => {
     if (transactions.length === 0) {
-      showToast('No transactions to export');
+      showToast('No transactions to export', 'error');
       return;
     }
     const headers = ['ID', 'Title', 'Category', 'Amount', 'Type', 'Payment Method', 'Date', 'Notes'];
@@ -261,7 +266,7 @@ export default function App() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast('Transactions exported to CSV!');
+    showToast('Transactions exported to CSV!', 'success');
   };
 
   // Export to JSON
@@ -279,7 +284,7 @@ export default function App() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    showToast('Backup JSON downloaded!');
+    showToast('Backup JSON downloaded!', 'success');
   };
 
   const handleBackHeader = () => {
@@ -290,10 +295,39 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary relative selection:bg-[#2170e4]/20">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#141b2b] text-white px-5 py-2.5 rounded-full text-[13px] font-medium shadow-xl animate-in fade-in slide-in-from-top-2">
-          {toastMessage}
+      {/* Modern Floating Toast Notification */}
+      {toast && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%] pointer-events-none animate-in fade-in slide-in-from-top-4 duration-200">
+          <div
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl backdrop-blur-md border pointer-events-auto ${
+              toast.type === 'success'
+                ? 'bg-[#27AE60]/95 text-white border-[#27AE60]/30 shadow-[#27AE60]/20'
+                : toast.type === 'delete'
+                ? 'bg-[#ba1a1a]/95 text-white border-[#ba1a1a]/30 shadow-[#ba1a1a]/20'
+                : toast.type === 'error'
+                ? 'bg-[#ba1a1a]/95 text-white border-[#ba1a1a]/30 shadow-[#ba1a1a]/20'
+                : 'bg-[#0058be]/95 text-white border-[#0058be]/30 shadow-[#0058be]/20'
+            }`}
+          >
+            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[18px]">
+                {toast.type === 'success'
+                  ? 'check_circle'
+                  : toast.type === 'delete'
+                  ? 'delete'
+                  : toast.type === 'error'
+                  ? 'error'
+                  : 'info'}
+              </span>
+            </div>
+            <p className="text-[13px] font-medium leading-tight flex-1">{toast.message}</p>
+            <button
+              onClick={() => setToast(null)}
+              className="w-6 h-6 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors shrink-0"
+            >
+              <span className="material-symbols-outlined text-[16px]">close</span>
+            </button>
+          </div>
         </div>
       )}
 
