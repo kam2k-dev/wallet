@@ -117,11 +117,11 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             }}
             className={`flex-1 py-2 text-[14px] font-semibold rounded-xl transition-all ${
               type === 'expense'
-                ? 'bg-bg-secondary text-text-primary shadow-sm'
+                ? 'bg-[#ba1a1a] text-white shadow-sm'
                 : 'text-text-secondary hover:text-text-primary'
             }`}
           >
-            Expense (-)
+            Expense
           </button>
           <button
             type="button"
@@ -135,7 +135,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 : 'text-text-secondary hover:text-text-primary'
             }`}
           >
-            Income (+)
+            Income
           </button>
         </div>
 

@@ -26,6 +26,7 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
   const [showPieDetail, setShowPieDetail] = useState(false);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
+  const [isTimeMenuOpen, setIsTimeMenuOpen] = useState(false);
 
   const formatAmount = (num: number) => formatCurrency(num, currency);
 
@@ -124,24 +125,28 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
 
   return (
     <main className="max-w-md mx-auto px-5 pt-4 space-y-5 pb-28">
-      {/* Time & Type Filter Pills */}
-      <section className="space-y-2">
-        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+      {/* Time & Type Filter - Single Row */}
+      <section className="flex items-center justify-between gap-2 relative z-30">
+        {/* Segmented Control: All / Expense / Income */}
+        <div className="flex bg-bg-secondary p-1 rounded-2xl border border-border-color flex-1">
           {(
             [
-              { id: 'all', label: 'All Time' },
-              { id: 'this_month', label: 'This Month' },
-              { id: 'last_month', label: 'Last Month' },
-              { id: 'this_year', label: 'This Year' },
+              { id: 'all', label: 'All' },
+              { id: 'expense', label: 'Expense' },
+              { id: 'income', label: 'Income' },
             ] as const
           ).map((tf) => (
             <button
               key={tf.id}
-              onClick={() => setTimeFilter(tf.id)}
-              className={`px-3 py-1.5 rounded-full text-[12px] font-medium whitespace-nowrap transition-all ${
-                timeFilter === tf.id
-                  ? 'bg-[#0058be] text-white shadow-sm'
-                  : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary border border-border-color'
+              onClick={() => setTypeFilter(tf.id)}
+              className={`flex-1 py-1.5 text-[12px] font-semibold rounded-xl transition-all ${
+                typeFilter === tf.id
+                  ? tf.id === 'expense'
+                    ? 'bg-[#ba1a1a] text-white shadow-sm'
+                    : tf.id === 'income'
+                    ? 'bg-[#27AE60] text-white shadow-sm'
+                    : 'bg-[#0058be] text-white shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary'
               }`}
             >
               {tf.label}
@@ -149,26 +154,85 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
           ))}
         </div>
 
-        <div className="flex gap-1.5">
-          {(
-            [
-              { id: 'all', label: 'All Types' },
-              { id: 'expense', label: 'Expenses Only' },
-              { id: 'income', label: 'Income Only' },
-            ] as const
-          ).map((tf) => (
-            <button
-              key={tf.id}
-              onClick={() => setTypeFilter(tf.id)}
-              className={`flex-1 py-1.5 rounded-xl text-[12px] font-medium transition-all ${
-                typeFilter === tf.id
-                  ? 'bg-text-primary text-bg-primary font-semibold shadow-sm'
-                  : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary border border-border-color'
+        {/* Custom Floating Time Filter Menu */}
+        <div className="relative shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsTimeMenuOpen(!isTimeMenuOpen)}
+            className={`flex items-center gap-1.5 bg-bg-secondary border text-text-primary text-[12px] font-medium h-[38px] px-3 rounded-2xl shadow-sm transition-all ${
+              isTimeMenuOpen
+                ? 'border-[#0058be] ring-2 ring-[#0058be]/20'
+                : 'border-border-color hover:bg-bg-tertiary'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px] text-[#0058be]">calendar_today</span>
+            <span>
+              {timeFilter === 'all'
+                ? 'All Time'
+                : timeFilter === 'this_month'
+                ? 'This Month'
+                : timeFilter === 'last_month'
+                ? 'Last Month'
+                : 'This Year'}
+            </span>
+            <span
+              className={`material-symbols-outlined text-[16px] text-text-secondary transition-transform duration-200 ${
+                isTimeMenuOpen ? 'rotate-180' : ''
               }`}
             >
-              {tf.label}
-            </button>
-          ))}
+              expand_more
+            </span>
+          </button>
+
+          {/* Floating Dropdown Menu */}
+          {isTimeMenuOpen && (
+            <>
+              {/* Backdrop to close on click outside */}
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setIsTimeMenuOpen(false)}
+              />
+              <div className="absolute right-0 top-full mt-1.5 w-40 bg-bg-secondary rounded-2xl border border-border-color shadow-xl p-1.5 z-50 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
+                {(
+                  [
+                    { id: 'all', label: 'All Time', icon: 'all_inclusive' },
+                    { id: 'this_month', label: 'This Month', icon: 'calendar_month' },
+                    { id: 'last_month', label: 'Last Month', icon: 'history' },
+                    { id: 'this_year', label: 'This Year', icon: 'date_range' },
+                  ] as const
+                ).map((item) => {
+                  const isSelected = timeFilter === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setTimeFilter(item.id);
+                        setIsTimeMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[12px] font-medium transition-colors ${
+                        isSelected
+                          ? 'bg-[#0058be]/10 text-[#0058be] font-semibold'
+                          : 'text-text-primary hover:bg-bg-tertiary'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[15px] opacity-70">
+                          {item.icon}
+                        </span>
+                        <span>{item.label}</span>
+                      </div>
+                      {isSelected && (
+                        <span className="material-symbols-outlined text-[16px] text-[#0058be]">
+                          check
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       </section>
 

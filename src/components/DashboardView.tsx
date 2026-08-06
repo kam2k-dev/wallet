@@ -113,21 +113,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-[16px] leading-[24px] text-text-primary">Categories</h2>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
             {onAddCategory && (
               <button
                 onClick={onAddCategory}
-                className="text-[#0058be] text-[12px] font-medium hover:underline flex items-center gap-0.5"
+                title="Add Category"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:text-primary hover:bg-primary/10 transition-colors"
               >
-                <span className="material-symbols-outlined text-[14px]">add</span>
-                New
+                <span className="material-symbols-outlined text-[20px]">add_circle</span>
               </button>
             )}
             <button
               onClick={() => setIsEditMode(!isEditMode)}
-              className="text-[#0058be] text-[12px] font-medium hover:underline"
+              title={isEditMode ? 'Done' : 'Edit Categories'}
+              className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                isEditMode
+                  ? 'bg-primary text-white'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary'
+              }`}
             >
-              {isEditMode ? 'Done' : 'Edit'}
+              <span className="material-symbols-outlined text-[18px]">
+                {isEditMode ? 'check' : 'edit'}
+              </span>
             </button>
           </div>
         </div>
@@ -193,9 +200,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <h2 className="font-semibold text-[16px] leading-[24px] text-text-primary">Latest transaction</h2>
           <button
             onClick={onSeeAllTransactions}
-            className="text-[#0058be] text-[12px] font-medium hover:underline"
+            title="See all transactions"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:text-primary hover:bg-primary/10 transition-colors"
           >
-            See all
+            <span className="material-symbols-outlined text-[20px]">chevron_right</span>
           </button>
         </div>
 
