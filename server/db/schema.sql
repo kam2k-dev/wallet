@@ -1,5 +1,5 @@
--- Supabase schema for Wallet & Spend Analysis
--- Run this in the Supabase SQL editor to set up the production database.
+-- PostgreSQL schema for Wallet & Spend Analysis
+-- Run this in your PostgreSQL database to set up the tables.
 
 -- Categories table
 create table if not exists categories (

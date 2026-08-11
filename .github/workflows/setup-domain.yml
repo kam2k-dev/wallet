@@ -1,0 +1,72 @@
+name: Setup Domain & SSL (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      domain_name:
+        description: 'Domain name (e.g., app.yourdomain.com)'
+        required: true
+      target_port:
+        description: 'Target Docker Port (e.g., 5000 for Prod, 5001 for Dev)'
+        required: true
+        default: '5000'
+      email:
+        description: 'Email for Let''s Encrypt SSL registration'
+        required: true
+
+jobs:
+  setup-nginx-ssl:
+    name: Configure Nginx & SSL
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Execute Nginx & Certbot setup via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            DOMAIN="${{ github.event.inputs.domain_name }}"
+            PORT="${{ github.event.inputs.target_port }}"
+            EMAIL="${{ github.event.inputs.email }}"
+            
+            echo "Starting setup for $DOMAIN pointing to port $PORT..."
+            
+            # 1. Install Nginx & Certbot if not installed
+            sudo apt-get update
+            sudo apt-get install -y nginx certbot python3-certbot-nginx
+            
+            # 2. Create Nginx configuration file
+            NGINX_CONF="/etc/nginx/sites-available/$DOMAIN"
+            
+            sudo bash -c "cat > $NGINX_CONF" <<EOF
+            server {
+                listen 80;
+                server_name $DOMAIN;
+
+                location / {
+                    proxy_pass http://localhost:$PORT;
+                    proxy_http_version 1.1;
+                    proxy_set_header Upgrade \\\$http_upgrade;
+                    proxy_set_header Connection 'upgrade';
+                    proxy_set_header Host \\\$host;
+                    proxy_cache_bypass \\\$http_upgrade;
+                    proxy_set_header X-Real-IP \\\$remote_addr;
+                    proxy_set_header X-Forwarded-For \\\$proxy_add_x_forwarded_for;
+                }
+            }
+            EOF
+            
+            # 3. Enable the site by creating a symlink
+            sudo ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/
+            
+            # 4. Test Nginx configuration and reload
+            sudo nginx -t
+            sudo systemctl reload nginx
+            
+            # 5. Obtain and install SSL Certificate via Certbot
+            echo "Requesting SSL certificate for $DOMAIN..."
+            sudo certbot --nginx -d $DOMAIN --non-interactive --agree-tos -m $EMAIL --redirect
+            
+            echo "✅ Domain $DOMAIN has been successfully configured with SSL and is pointing to port $PORT!"

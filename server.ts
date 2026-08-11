@@ -2,10 +2,11 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { db } from "./server/db/index";
+import { waAuthService } from "./server/auth/waAuth";
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT || 5000;
 
   app.use(express.json());
 
@@ -14,7 +15,95 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
-  // ─── Data API (dummy JSON in dev, Supabase in prod) ──────────────────────
+  // ─── WhatsApp Reverse Auth API ──────────────────────────────────────────
+
+  // 1. Initiate WhatsApp Reverse Auth session
+  app.post("/api/auth/wa/initiate", (req, res) => {
+    try {
+      const { phoneHint } = req.body || {};
+      const session = waAuthService.initiateSession(phoneHint);
+      res.json({ success: true, session });
+    } catch (error: any) {
+      console.error("POST /api/auth/wa/initiate error:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // 2. Check status of an auth session (polling endpoint)
+  app.get("/api/auth/wa/status/:sessionId", (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const session = waAuthService.getSessionStatus(sessionId);
+      if (!session) {
+        return res.status(404).json({ success: false, error: "Session not found or expired" });
+      }
+      res.json({
+        success: true,
+        status: session.status,
+        session,
+        user: session.user,
+        token: session.token,
+      });
+    } catch (error: any) {
+      console.error("GET /api/auth/wa/status error:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // 3. Webhook for Baileys self-hosted bot
+  // Baileys bot sends: { from: "628123456789@s.whatsapp.net", text: "LOGIN 123456" }
+  app.post("/api/auth/wa/webhook", (req, res) => {
+    try {
+      const { from, text, message } = req.body || {};
+      const messageText = text || message || "";
+      const fromPhone = from || "";
+
+      if (!fromPhone || !messageText) {
+        return res.status(400).json({ success: false, error: "Missing 'from' or 'text' in payload" });
+      }
+
+      const result = waAuthService.handleIncomingMessage(fromPhone, messageText);
+      if (!result.success) {
+        return res.status(400).json(result);
+      }
+
+      res.json({
+        success: true,
+        message: "Authentication successful",
+        session: result.session,
+      });
+    } catch (error: any) {
+      console.error("POST /api/auth/wa/webhook error:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // 4. Mock verification endpoint for local dev testing
+  app.post("/api/auth/wa/mock-verify", (req, res) => {
+    try {
+      const { sessionId, phone } = req.body || {};
+      if (!sessionId) {
+        return res.status(400).json({ success: false, error: "Missing sessionId" });
+      }
+
+      const result = waAuthService.mockVerify(sessionId, phone || "+628123456789");
+      if (!result.success) {
+        return res.status(400).json(result);
+      }
+
+      res.json({
+        success: true,
+        session: result.session,
+        user: result.session?.user,
+        token: result.session?.token,
+      });
+    } catch (error: any) {
+      console.error("POST /api/auth/wa/mock-verify error:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ─── Data API (dummy JSON in dev, PostgreSQL in prod) ──────────────────────
 
   // GET all transactions
   app.get("/api/transactions", async (_req, res) => {

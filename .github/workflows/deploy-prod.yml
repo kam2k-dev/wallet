@@ -1,0 +1,75 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-and-build:
+    name: Test & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Linter / Type Check
+        run: npm run lint
+
+      - name: Build Application
+        run: npm run build
+
+  deploy:
+    name: Deploy to VPS (Prod)
+    needs: test-and-build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Execute deployment script via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # 1. Buat folder project jika belum ada
+            mkdir -p ~/wallet-app-prod
+            cd ~/wallet-app-prod
+            
+            # 2. Clone atau Pull kode terbaru dari branch main
+            if [ -d ".git" ]; then
+              echo "Pulling latest code from main branch..."
+              git fetch origin main
+              git reset --hard origin/main
+            else
+              echo "Cloning repository..."
+              git clone -b main https://github.com/${{ github.repository }}.git .
+            fi
+            
+            # 3. Peringatan jika file .env belum dibuat di VPS
+            if [ ! -f ".env" ]; then
+              echo "⚠️ WARNING: .env file not found in ~/wallet-app-prod!"
+              echo "Please create it manually with DB_MODE=postgres and DATABASE_URL."
+            fi
+            
+            # 4. Build dan jalankan container menggunakan docker-compose khusus prod
+            echo "Building and starting Docker containers..."
+            docker-compose -f docker-compose.prod.yml up -d --build
+            
+            # 5. Bersihkan image docker yang tidak terpakai (dangling images)
+            echo "Cleaning up unused Docker images..."
+            docker image prune -f
+            
+            echo "✅ Production Deployment Successful!"

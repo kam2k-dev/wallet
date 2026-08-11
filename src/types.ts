@@ -31,3 +31,32 @@ export interface ChartPoint {
   amount: number;
   fullDate: string;
 }
+
+export interface User {
+  id: string;
+  phone: string;
+  name: string;
+  avatar?: string;
+  createdAt: string;
+}
+
+export type AuthSessionStatus = 'pending' | 'verified' | 'expired';
+
+export interface AuthSession {
+  sessionId: string;
+  code: string;
+  botNumber: string;
+  waLink: string;
+  status: AuthSessionStatus;
+  expiresAt: number;
+  user?: User;
+  token?: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  session?: AuthSession;
+  user?: User;
+  token?: string;
+  error?: string;
+}

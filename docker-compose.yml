@@ -1,7 +1,0 @@
-services:
-  wallet-app:
-    build: .
-    container_name: wallet-spend-analysis
-    ports:
-      - "3000:80"
-    restart: always

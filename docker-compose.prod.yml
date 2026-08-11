@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: wallet-app-prod
+    restart: always
+    ports:
+      - "5000:5000" # Expose to port 5000 on VPS for Prod
+    environment:
+      - NODE_ENV=production
+      - DB_MODE=postgres
+      - DATABASE_URL=postgresql://wallet_prod_user:prod_password_secure@db:5432/wallet_prod
+      - APP_URL=https://app.yourdomain.com
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:15-alpine
+    container_name: wallet-db-prod
+    restart: always
+    environment:
+      - POSTGRES_USER=wallet_prod_user
+      - POSTGRES_PASSWORD=prod_password_secure
+      - POSTGRES_DB=wallet_prod
+    ports:
+      - "5432:5432" # Expose DB to port 5432 on VPS
+    volumes:
+      - pgdata_prod:/var/lib/postgresql/data
+      - ./server/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql # Auto-run schema on first start
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wallet_prod_user -d wallet_prod"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata_prod:

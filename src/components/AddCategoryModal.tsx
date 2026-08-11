@@ -50,7 +50,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [budget, setBudget] = useState('');
 
-  const activeCur = getCurrency(currency);
+  const activeCur = getCurrency(currency as any);
 
   if (!isOpen) return null;
 

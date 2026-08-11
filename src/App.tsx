@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { ViewTab, CategoryId, Transaction, Category } from './types';
+import { ViewTab, CategoryId, Transaction, Category, User } from './types';
 import { INITIAL_CATEGORIES, INITIAL_TRANSACTIONS } from './data/mockData';
 import { api } from './api/client';
 import { CurrencyCode } from './utils/currency';
@@ -15,6 +15,7 @@ import { DashboardView } from './components/DashboardView';
 import { SpendAnalysisView } from './components/SpendAnalysisView';
 import { WalletDetailsView } from './components/WalletDetailsView';
 import { ProfileView } from './components/ProfileView';
+import { LoginPage } from './components/LoginPage';
 import { AddTransactionModal } from './components/AddTransactionModal';
 import { TransactionDetailsModal } from './components/TransactionDetailsModal';
 import { AddCategoryModal } from './components/AddCategoryModal';
@@ -25,6 +26,19 @@ interface ToastState {
 }
 
 export default function App() {
+  // Auth State
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('auth_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
   const [currentTab, setCurrentTab] = useState<ViewTab>('dashboard'); // Default to Dashboard (home) screen
   const [selectedCategoryId, setSelectedCategoryId] = useState<CategoryId>('groceries');
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
@@ -41,6 +55,23 @@ export default function App() {
     if (saved) return saved === 'dark';
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
+
+  // Handle Login Success
+  const handleLoginSuccess = (user: User, token: string) => {
+    setCurrentUser(user);
+    localStorage.setItem('auth_user', JSON.stringify(user));
+    localStorage.setItem('auth_token', token);
+    showToast(`Selamat datang, ${user.name}!`, 'success');
+  };
+
+  // Handle Logout
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('auth_user');
+    localStorage.removeItem('auth_token');
+    setCurrentTab('dashboard');
+    showToast('Anda telah keluar dari akun.', 'info');
+  };
 
   // Apply dark mode class to html element
   useEffect(() => {
@@ -63,7 +94,7 @@ export default function App() {
     });
   }, []);
 
-  // Load data from backend (dummy JSON in dev, Supabase in prod)
+  // Load data from backend (dummy JSON in dev, PostgreSQL in prod)
   useEffect(() => {
     let cancelled = false;
     Promise.all([api.getCategories(), api.getTransactions()])
@@ -147,7 +178,7 @@ export default function App() {
       id: `tx-${Date.now()}`,
     };
 
-    // Persist to backend (dummy JSON in dev, Supabase in prod)
+    // Persist to backend (dummy JSON in dev, PostgreSQL in prod)
     try {
       await api.addTransaction(newTx);
     } catch (err) {
@@ -293,6 +324,17 @@ export default function App() {
     }
   };
 
+  // If user is not logged in, render the modern WhatsApp Login Page
+  if (!currentUser) {
+    return (
+      <LoginPage
+        onLoginSuccess={handleLoginSuccess}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-bg-primary text-text-primary relative selection:bg-[#2170e4]/20">
       {/* Modern Floating Toast Notification */}
@@ -336,6 +378,8 @@ export default function App() {
         currentTab={currentTab}
         categoryTitle={selectedCategory.name}
         onBack={handleBackHeader}
+        user={currentUser}
+        onProfileClick={() => setCurrentTab('profile')}
       />
 
       {/* Main View Area */}
@@ -383,6 +427,8 @@ export default function App() {
 
       {currentTab === 'profile' && (
         <ProfileView 
+          user={currentUser}
+          onLogout={handleLogout}
           currency={currency} 
           onCurrencyChange={handleCurrencyChange} 
           rates={rates} 

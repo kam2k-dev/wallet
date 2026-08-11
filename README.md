@@ -43,19 +43,18 @@ Aplikasi mendukung dua mode database yang dipilih lewat variabel `DB_MODE`:
 | Mode | Kapan | Penyimpanan |
 |------|-------|-------------|
 | `dummy` (default) | Development | File JSON lokal di `server/db/data.json` |
-| `supabase` | Production | Supabase Postgres |
+| `postgres` | Production | PostgreSQL Database |
 
 ### Setup Development (Dummy DB)
 Tidak perlu konfigurasi apa pun — data otomatis disimpan ke `server/db/data.json` dan bertahan antar restart server. File ini sudah dimasukkan ke `.gitignore` sehingga aman dan tidak akan terekspos ke GitHub.
 
-### Setup Production (Supabase)
-1. Buat project di [Supabase](https://supabase.com).
-2. Jalankan skrip `server/db/schema.sql` di SQL Editor untuk membuat tabel `categories` & `transactions`.
+### Setup Production (PostgreSQL)
+1. Buat database PostgreSQL.
+2. Jalankan skrip `server/db/schema.sql` di database Anda untuk membuat tabel `categories` & `transactions`.
 3. Salin `.env.example` menjadi `.env` dan isi:
    ```env
-   DB_MODE="supabase"
-   SUPABASE_URL="https://your-project.supabase.co"
-   SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+   DB_MODE="postgres"
+   DATABASE_URL="postgresql://user:password@localhost:5432/wallet_db"
    ```
 
 ---
@@ -63,7 +62,7 @@ Tidak perlu konfigurasi apa pun — data otomatis disimpan ke `server/db/data.js
 ## 🛠️ Scripts
 
 ```bash
-npm run dev      # Jalankan dev server (Vite + Express) di :3000
+npm run dev      # Jalankan dev server (Vite + Express) di :5000
 npm run build    # Build frontend + bundle server
 npm run start    # Jalankan production build
 npm run lint     # Type-check (tsc --noEmit)

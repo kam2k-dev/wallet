@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: wallet-app-dev
+    restart: always
+    ports:
+      - "5001:5000" # Expose to port 5001 on VPS for Dev
+    environment:
+      - NODE_ENV=development
+      - DB_MODE=postgres
+      - DATABASE_URL=postgresql://wallet_dev_user:dev_password@db:5432/wallet_dev
+      - APP_URL=https://dev.yourdomain.com
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:15-alpine
+    container_name: wallet-db-dev
+    restart: always
+    environment:
+      - POSTGRES_USER=wallet_dev_user
+      - POSTGRES_PASSWORD=dev_password
+      - POSTGRES_DB=wallet_dev
+    ports:
+      - "5433:5432" # Expose DB to port 5433 on VPS (optional, for TablePlus)
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+      - ./server/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql # Auto-run schema on first start
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wallet_dev_user -d wallet_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata_dev:
