@@ -3,7 +3,7 @@ name: Deploy to Development
 on:
   push:
     branches:
-      - develop
+      - dev
 
 jobs:
   test-and-build:
@@ -48,14 +48,14 @@ jobs:
             mkdir -p ~/wallet-app-dev
             cd ~/wallet-app-dev
             
-            # 2. Clone atau Pull kode terbaru dari branch develop
+            # 2. Clone atau Pull kode terbaru dari branch dev
             if [ -d ".git" ]; then
-              echo "Pulling latest code from develop branch..."
-              git fetch origin develop
-              git reset --hard origin/develop
+              echo "Pulling latest code from dev branch..."
+              git fetch origin dev
+              git reset --hard origin/dev
             else
               echo "Cloning repository..."
-              git clone -b develop https://github.com/${{ github.repository }}.git .
+              git clone -b dev https://github.com/${{ github.repository }}.git .
             fi
             
             # 3. Peringatan jika file .env belum dibuat di VPS
