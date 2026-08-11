@@ -64,9 +64,13 @@ jobs:
               echo "Please create it manually with DB_MODE=postgres and DATABASE_URL."
             fi
             
-            # 4. Build dan jalankan container menggunakan docker-compose khusus prod
+            # 4. Build dan jalankan container
             echo "Building and starting Docker containers..."
-            docker-compose -f docker-compose.prod.yml up -d --build
+            if command -v docker-compose &> /dev/null; then
+              docker-compose -f docker-compose.prod.yml up -d --build
+            else
+              docker compose -f docker-compose.prod.yml up -d --build
+            fi
             
             # 5. Bersihkan image docker yang tidak terpakai (dangling images)
             echo "Cleaning up unused Docker images..."
