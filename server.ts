@@ -176,8 +176,10 @@ async function startServer() {
     }
   });
 
-  // Vite middleware for development vs static serve for production
-  if (process.env.NODE_ENV !== "production") {
+  // Vite middleware for local development vs static serve for production/docker
+  const isDocker = process.env.DB_MODE === "postgres"; // We use postgres in Docker
+  
+  if (process.env.NODE_ENV !== "production" && !isDocker) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
