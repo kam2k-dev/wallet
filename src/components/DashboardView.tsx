@@ -31,8 +31,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [isEditMode, setIsEditMode] = useState(false);
   const [hiddenCategories, setHiddenCategories] = useState<Set<CategoryId>>(() => {
     const saved = localStorage.getItem('hiddenCategories');
-    // Default hidden categories for new users (hide income categories by default)
-    const defaultHidden: CategoryId[] = ['salary', 'freelance', 'investment', 'other_income'];
+    // Default hidden categories for new users
+    const defaultHidden: CategoryId[] = [];
     return saved ? new Set(JSON.parse(saved)) : new Set(defaultHidden);
   });
 

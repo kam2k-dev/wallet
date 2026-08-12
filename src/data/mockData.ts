@@ -8,6 +8,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     color: '#9466ff',
     bgHex: '#9c27b0',
     icon: 'shopping_bag',
+    type: 'expense',
   },
   {
     id: 'transport',
@@ -16,6 +17,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     color: '#2170e4',
     bgHex: '#2196f3',
     icon: 'directions_car',
+    type: 'expense',
   },
   {
     id: 'entertainment',
@@ -24,6 +26,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     color: '#27AE60',
     bgHex: '#4caf50',
     icon: 'event',
+    type: 'expense',
   },
   {
     id: 'rent',
@@ -32,6 +35,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     color: '#F39C12',
     bgHex: '#ff9800',
     icon: 'home',
+    type: 'expense',
   },
   {
     id: 'salary',
@@ -40,6 +44,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     color: '#27AE60',
     bgHex: '#2ecc71',
     icon: 'payments',
+    type: 'income',
   },
   {
     id: 'freelance',
@@ -48,6 +53,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     color: '#00bcd4',
     bgHex: '#0097a7',
     icon: 'work',
+    type: 'income',
   },
   {
     id: 'investment',
@@ -56,6 +62,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     color: '#8e44ad',
     bgHex: '#9b59b6',
     icon: 'trending_up',
+    type: 'income',
   },
   {
     id: 'other_income',
@@ -64,6 +71,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     color: '#16a085',
     bgHex: '#1abc9c',
     icon: 'savings',
+    type: 'income',
   },
 ];
 

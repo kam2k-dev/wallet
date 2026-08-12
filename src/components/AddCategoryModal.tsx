@@ -49,6 +49,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
   const [selectedIcon, setSelectedIcon] = useState('shopping_bag');
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [budget, setBudget] = useState('');
+  const [type, setType] = useState<'expense' | 'income'>('expense');
 
   const activeCur = getCurrency(currency as any);
 
@@ -70,6 +71,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
       bgHex: colorObj.bgHex,
       icon: selectedIcon,
       budget: budgetNum && !isNaN(budgetNum) ? budgetNum : undefined,
+      type: type,
     });
 
     setName('');
@@ -87,6 +89,32 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
             className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center text-text-secondary hover:bg-[#e1e8fd]"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        {/* Expense / Income Toggle */}
+        <div className="flex bg-bg-tertiary p-1 rounded-2xl border border-border-color">
+          <button
+            type="button"
+            onClick={() => setType('expense')}
+            className={`flex-1 py-2 text-[14px] font-semibold rounded-xl transition-all ${
+              type === 'expense'
+                ? 'bg-[#ba1a1a] text-white shadow-sm'
+                : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            Expense
+          </button>
+          <button
+            type="button"
+            onClick={() => setType('income')}
+            className={`flex-1 py-2 text-[14px] font-semibold rounded-xl transition-all ${
+              type === 'income'
+                ? 'bg-[#27AE60] text-white shadow-sm'
+                : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            Income
           </button>
         </div>
 

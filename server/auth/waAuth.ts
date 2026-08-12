@@ -27,7 +27,7 @@ const codeToSessionId = new Map<string, string>();
 
 // Default Bot WhatsApp Number (can be configured via env var WA_BOT_NUMBER)
 const BOT_NUMBER = process.env.WA_BOT_NUMBER || '628152221622';
-const SESSION_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const SESSION_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 /**
  * Generate a random 6-digit alphanumeric code (e.g. "AUTH-8921" or "892145")

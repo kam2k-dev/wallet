@@ -8,6 +8,7 @@ export interface Category {
   bgHex: string;
   icon: string;
   budget?: number; // Monthly budget limit
+  type?: 'expense' | 'income';
 }
 
 export interface Transaction {

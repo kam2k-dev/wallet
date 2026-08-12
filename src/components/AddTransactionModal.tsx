@@ -176,10 +176,15 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             </label>
             <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto p-1">
               {categories
-                .filter((cat) => type === 'income' 
-                  ? ['salary', 'freelance', 'investment', 'other_income'].includes(cat.id) 
-                  : !['salary', 'freelance', 'investment', 'other_income'].includes(cat.id)
-                )
+                .filter((cat) => {
+                  if (cat.type) {
+                    return cat.type === type;
+                  }
+                  // Fallback for old data without type
+                  return type === 'income' 
+                    ? ['salary', 'freelance', 'investment', 'other_income'].includes(cat.id) 
+                    : !['salary', 'freelance', 'investment', 'other_income'].includes(cat.id);
+                })
                 .map((cat) => (
                 <button
                   key={cat.id}
