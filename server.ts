@@ -78,31 +78,6 @@ async function startServer() {
     }
   });
 
-  // 4. Mock verification endpoint for local dev testing
-  app.post("/api/auth/wa/mock-verify", (req, res) => {
-    try {
-      const { sessionId, phone } = req.body || {};
-      if (!sessionId) {
-        return res.status(400).json({ success: false, error: "Missing sessionId" });
-      }
-
-      const result = waAuthService.mockVerify(sessionId, phone || "+628123456789");
-      if (!result.success) {
-        return res.status(400).json(result);
-      }
-
-      res.json({
-        success: true,
-        session: result.session,
-        user: result.session?.user,
-        token: result.session?.token,
-      });
-    } catch (error: any) {
-      console.error("POST /api/auth/wa/mock-verify error:", error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-
   // ─── Data API (dummy JSON in dev, PostgreSQL in prod) ──────────────────────
 
   // GET all transactions

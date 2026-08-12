@@ -121,27 +121,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }
   };
 
-  // Mock verify for instant testing in dev mode
-  const handleMockVerify = async () => {
-    if (!session) return;
-    setIsVerifying(true);
-    try {
-      const res = await api.mockVerifyWaAuth(session.sessionId, '+628123456789');
-      if (res.success && res.user && res.token) {
-        setIsSuccess(true);
-        setTimeout(() => {
-          onLoginSuccess(res.user!, res.token!);
-        }, 800);
-      } else {
-        setError('Gagal melakukan simulasi verifikasi.');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Gagal simulasi verifikasi.');
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
   // Format seconds to MM:SS
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -329,24 +308,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <span>{error}</span>
               </div>
             )}
-
-            {/* Dev Mode Mock Verification */}
-            <div className="pt-2 border-t border-dashed border-border-color">
-              <button
-                onClick={handleMockVerify}
-                disabled={isVerifying}
-                className="w-full py-2 px-3 rounded-xl bg-bg-tertiary/60 hover:bg-bg-secondary text-text-secondary hover:text-text-primary text-[11px] font-medium border border-border-color transition-all active-scale flex items-center justify-center gap-1.5"
-              >
-                {isVerifying ? (
-                  <div className="w-3.5 h-3.5 border-2 border-text-secondary border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <span className="material-symbols-outlined text-[14px] text-[#2170e4]">
-                    developer_mode
-                  </span>
-                )}
-                <span>Simulasi Login (Dev Mode)</span>
-              </button>
-            </div>
           </div>
         )}
       </main>
