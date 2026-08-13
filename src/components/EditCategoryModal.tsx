@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
-import { Category } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Category, CategoryId } from '../types';
 import { CurrencyCode, getCurrency } from '../utils/currency';
 
-interface AddCategoryModalProps {
+interface EditCategoryModalProps {
   isOpen: boolean;
+  category: Category | null;
   currency?: CurrencyCode;
   onClose: () => void;
-  onAddCategory: (category: Category) => void;
+  onEditCategory: (category: Category) => void;
 }
 
 const AVAILABLE_ICONS = [
@@ -39,11 +40,12 @@ const AVAILABLE_COLORS = [
   { color: '#795548', bgHex: '#5d4037' },
 ];
 
-export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
+export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({
   isOpen,
+  category,
   currency = 'IDR',
   onClose,
-  onAddCategory,
+  onEditCategory,
 }) => {
   const [name, setName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('shopping_bag');
@@ -51,22 +53,31 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
   const [budget, setBudget] = useState('');
   const [type, setType] = useState<'expense' | 'income'>('expense');
 
+  useEffect(() => {
+    if (category && isOpen) {
+      setName(category.name);
+      setSelectedIcon(category.icon);
+      const colorIdx = AVAILABLE_COLORS.findIndex(c => c.color === category.color);
+      setSelectedColorIdx(colorIdx !== -1 ? colorIdx : 0);
+      setBudget(category.budget ? category.budget.toString() : '');
+      setType(category.type || 'expense');
+    }
+  }, [category, isOpen]);
+
   const activeCur = getCurrency(currency as any);
 
-  if (!isOpen) return null;
+  if (!isOpen || !category) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
-    const id = name.trim().toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
     const colorObj = AVAILABLE_COLORS[selectedColorIdx];
     const budgetNum = budget ? parseFloat(budget) : undefined;
 
-    onAddCategory({
-      id,
+    onEditCategory({
+      ...category,
       name: name.trim(),
-      amount: 0,
       color: colorObj.color,
       bgHex: colorObj.bgHex,
       icon: selectedIcon,
@@ -74,8 +85,6 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
       type: type,
     });
 
-    setName('');
-    setBudget('');
     onClose();
   };
 
@@ -83,7 +92,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
       <div className="bg-bg-secondary rounded-3xl p-6 w-full max-w-md shadow-2xl border border-border-color space-y-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
-          <h2 className="text-[20px] font-bold text-text-primary">New Category</h2>
+          <h2 className="text-[20px] font-bold text-text-primary">Edit Category</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center text-text-secondary hover:bg-[#e1e8fd]"
@@ -196,7 +205,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
             type="submit"
             className="w-full py-3.5 bg-[#000000] dark:bg-[#2170e4] text-white font-semibold rounded-full hover:opacity-90 transition-all active:scale-95 shadow-md mt-2"
           >
-            Create Category
+            Save Changes
           </button>
         </form>
       </div>

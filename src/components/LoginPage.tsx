@@ -121,27 +121,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }
   };
 
-  // Mock verify for instant testing in dev mode
-  const handleMockVerify = async () => {
-    if (!session) return;
-    setIsVerifying(true);
-    try {
-      const res = await api.mockVerifyWaAuth(session.sessionId, '+628123456789');
-      if (res.success && res.user && res.token) {
-        setIsSuccess(true);
-        setTimeout(() => {
-          onLoginSuccess(res.user!, res.token!);
-        }, 800);
-      } else {
-        setError('Gagal melakukan simulasi verifikasi.');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Gagal simulasi verifikasi.');
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
   // Format seconds to MM:SS
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -166,9 +145,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       <header className="w-full max-w-md mx-auto px-6 pt-6 flex items-center justify-between z-10">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-[#2170e4] to-[#0051a8] flex items-center justify-center text-white shadow-md shadow-[#2170e4]/20">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a8 8 0 0 1-8 8H5a2 2 0 0 1-2-2V7" />
-              <path d="M16 14h.01" />
+            <svg width="19" height="19" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fill="currentColor" d="M27 8H7a1 1 0 0 1 0-2h17a1 1 0 1 0 0-2H7a3 3 0 0 0-3 3v16a3 3 0 0 0 3 3h20a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2m-4.5 10a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3" />
             </svg>
           </div>
           <span className="text-[16px] font-bold tracking-tight">DompetKu</span>
@@ -329,24 +307,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <span>{error}</span>
               </div>
             )}
-
-            {/* Dev Mode Mock Verification */}
-            <div className="pt-2 border-t border-dashed border-border-color">
-              <button
-                onClick={handleMockVerify}
-                disabled={isVerifying}
-                className="w-full py-2 px-3 rounded-xl bg-bg-tertiary/60 hover:bg-bg-secondary text-text-secondary hover:text-text-primary text-[11px] font-medium border border-border-color transition-all active-scale flex items-center justify-center gap-1.5"
-              >
-                {isVerifying ? (
-                  <div className="w-3.5 h-3.5 border-2 border-text-secondary border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <span className="material-symbols-outlined text-[14px] text-[#2170e4]">
-                    developer_mode
-                  </span>
-                )}
-                <span>Simulasi Login (Dev Mode)</span>
-              </button>
-            </div>
           </div>
         )}
       </main>

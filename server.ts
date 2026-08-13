@@ -52,9 +52,9 @@ async function startServer() {
 
   // 3. Webhook for Baileys self-hosted bot
   // Baileys bot sends: { from: "628123456789@s.whatsapp.net", text: "LOGIN 123456" }
-  app.post("/api/auth/wa/webhook", (req, res) => {
+  app.post("/api/auth/wa/webhook", async (req, res) => {
     try {
-      const { from, text, message } = req.body || {};
+      const { from, text, message, name } = req.body || {};
       const messageText = text || message || "";
       const fromPhone = from || "";
 
@@ -62,7 +62,7 @@ async function startServer() {
         return res.status(400).json({ success: false, error: "Missing 'from' or 'text' in payload" });
       }
 
-      const result = waAuthService.handleIncomingMessage(fromPhone, messageText);
+      const result = await waAuthService.handleIncomingMessage(fromPhone, messageText, name);
       if (!result.success) {
         return res.status(400).json(result);
       }
@@ -74,31 +74,6 @@ async function startServer() {
       });
     } catch (error: any) {
       console.error("POST /api/auth/wa/webhook error:", error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-
-  // 4. Mock verification endpoint for local dev testing
-  app.post("/api/auth/wa/mock-verify", (req, res) => {
-    try {
-      const { sessionId, phone } = req.body || {};
-      if (!sessionId) {
-        return res.status(400).json({ success: false, error: "Missing sessionId" });
-      }
-
-      const result = waAuthService.mockVerify(sessionId, phone || "+628123456789");
-      if (!result.success) {
-        return res.status(400).json(result);
-      }
-
-      res.json({
-        success: true,
-        session: result.session,
-        user: result.session?.user,
-        token: result.session?.token,
-      });
-    } catch (error: any) {
-      console.error("POST /api/auth/wa/mock-verify error:", error);
       res.status(500).json({ success: false, error: error.message });
     }
   });
@@ -189,6 +164,17 @@ async function startServer() {
     }
   });
 
+  // GET all registered WhatsApp users (per number)
+  app.get("/api/users", async (_req, res) => {
+    try {
+      const users = await db.getUsers();
+      res.json(users);
+    } catch (error: any) {
+      console.error("GET /api/users error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // DELETE a transaction by id
   app.delete("/api/transactions/:id", async (req, res) => {
     try {
@@ -201,8 +187,10 @@ async function startServer() {
     }
   });
 
-  // Vite middleware for development vs static serve for production
-  if (process.env.NODE_ENV !== "production") {
+  // Vite middleware for local development vs static serve for production/docker
+  const isDocker = process.env.DB_MODE === "postgres"; // We use postgres in Docker
+  
+  if (process.env.NODE_ENV !== "production" && !isDocker) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",

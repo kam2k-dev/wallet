@@ -28,9 +28,20 @@ export interface DbCategory {
   budget?: number;
 }
 
+export interface DbUser {
+  id: string;
+  phone: string;
+  name: string;
+  avatar?: string;
+  createdAt: string;
+  updatedAt: string;
+  loginCount: number;
+}
+
 interface DbShape {
   transactions: DbTransaction[];
   categories: DbCategory[];
+  users: DbUser[];
 }
 
 const DATA_DIR = path.join(process.cwd(), "server", "db");
@@ -125,6 +136,7 @@ const SEED: DbShape = {
       paymentMethod: "Auto-Pay",
     },
   ],
+  users: [],
 };
 
 function ensureFile(): void {
@@ -140,7 +152,12 @@ function read(): DbShape {
   ensureFile();
   try {
     const raw = fs.readFileSync(DATA_FILE, "utf-8");
-    return JSON.parse(raw) as DbShape;
+    const parsed = JSON.parse(raw) as Partial<DbShape>;
+    return {
+      transactions: parsed.transactions ?? SEED.transactions,
+      categories: parsed.categories ?? SEED.categories,
+      users: parsed.users ?? [],
+    };
   } catch {
     return structuredClone(SEED);
   }
@@ -216,5 +233,26 @@ export const dummyDb = {
     const db = read();
     db.categories = categories;
     write(db);
+  },
+
+  async getUsers(): Promise<DbUser[]> {
+    return read().users;
+  },
+
+  async getUserByPhone(phone: string): Promise<DbUser | null> {
+    const db = read();
+    return db.users.find((u) => u.phone === phone) || null;
+  },
+
+  async upsertUser(user: DbUser): Promise<DbUser> {
+    const db = read();
+    const idx = db.users.findIndex((u) => u.phone === user.phone);
+    if (idx >= 0) {
+      db.users[idx] = { ...db.users[idx], ...user };
+    } else {
+      db.users.push(user);
+    }
+    write(db);
+    return user;
   },
 };

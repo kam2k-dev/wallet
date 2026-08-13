@@ -8,12 +8,13 @@ services:
     container_name: wallet-app-dev
     restart: always
     ports:
-      - "5001:5000" # Expose to port 5001 on VPS for Dev
+      - "5001:5001" # Expose to port 5001 on VPS for Dev
     environment:
-      - NODE_ENV=development
+      - PORT=5001
+      - NODE_ENV=production
       - DB_MODE=postgres
       - DATABASE_URL=postgresql://wallet_dev_user:dev_password@db:5432/wallet_dev
-      - APP_URL=https://dev.yourdomain.com
+      - APP_URL=http://43.128.98.5:5001
     depends_on:
       db:
         condition: service_healthy

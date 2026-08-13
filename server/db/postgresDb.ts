@@ -9,7 +9,7 @@
  *                 icon_url text, notes text)
  */
 import { Pool } from "pg";
-import type { DbTransaction, DbCategory } from "./dummyDb";
+import type { DbTransaction, DbCategory, DbUser } from "./dummyDb";
 
 let pool: Pool | null = null;
 
@@ -49,6 +49,18 @@ function rowToCategory(row: any): DbCategory {
     color: row.color,
     bgHex: row.bg_hex,
     icon: row.icon,
+  };
+}
+
+function rowToUser(row: any): DbUser {
+  return {
+    id: row.id,
+    phone: row.phone,
+    name: row.name,
+    avatar: row.avatar ?? undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    loginCount: Number(row.login_count),
   };
 }
 
@@ -262,5 +274,43 @@ export const postgresDb = {
     } finally {
       client.release();
     }
+  },
+
+  async getUsers(): Promise<DbUser[]> {
+    const { rows } = await getPool().query(
+      "SELECT * FROM users ORDER BY created_at ASC"
+    );
+    return rows.map(rowToUser);
+  },
+
+  async getUserByPhone(phone: string): Promise<DbUser | null> {
+    const { rows } = await getPool().query(
+      "SELECT * FROM users WHERE phone = $1",
+      [phone]
+    );
+    return rows.length > 0 ? rowToUser(rows[0]) : null;
+  },
+
+  async upsertUser(user: DbUser): Promise<DbUser> {
+    const { rows } = await getPool().query(
+      `INSERT INTO users (id, phone, name, avatar, created_at, updated_at, login_count)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (phone) DO UPDATE
+       SET name = EXCLUDED.name,
+           avatar = EXCLUDED.avatar,
+           updated_at = EXCLUDED.updated_at,
+           login_count = EXCLUDED.login_count
+       RETURNING *`,
+      [
+        user.id,
+        user.phone,
+        user.name,
+        user.avatar ?? null,
+        user.createdAt,
+        user.updatedAt,
+        user.loginCount,
+      ]
+    );
+    return rowToUser(rows[0]);
   },
 };

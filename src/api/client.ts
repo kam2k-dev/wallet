@@ -35,18 +35,6 @@ export const api = {
     return request(`/api/auth/wa/status/${sessionId}`);
   },
 
-  async mockVerifyWaAuth(sessionId: string, phone?: string): Promise<{
-    success: boolean;
-    session?: AuthSession;
-    user?: User;
-    token?: string;
-  }> {
-    return request('/api/auth/wa/mock-verify', {
-      method: 'POST',
-      body: JSON.stringify({ sessionId, phone }),
-    });
-  },
-
   // ─── Data Endpoints ─────────────────────────────────────────────────────
   async getTransactions(): Promise<Transaction[]> {
     return request<Transaction[]>('/api/transactions');

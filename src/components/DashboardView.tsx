@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Category, Transaction, CategoryId } from '../types';
 import { CurrencyCode, formatCurrency } from '../utils/currency';
+import { EditCategoryModal } from './EditCategoryModal';
 
 interface DashboardViewProps {
   categories: Category[];
@@ -13,6 +14,8 @@ interface DashboardViewProps {
   onSelectTransaction: (transaction: Transaction) => void;
   onSeeAllTransactions: () => void;
   onAddCategory?: () => void;
+  onDeleteCategory?: (categoryId: CategoryId) => void;
+  onEditCategory?: (category: Category) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -26,15 +29,32 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSelectTransaction,
   onSeeAllTransactions,
   onAddCategory,
+  onDeleteCategory,
+  onEditCategory,
 }) => {
   const [showBalance, setShowBalance] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
   const [hiddenCategories, setHiddenCategories] = useState<Set<CategoryId>>(() => {
     const saved = localStorage.getItem('hiddenCategories');
-    // Default hidden categories for new users (hide income categories by default)
-    const defaultHidden: CategoryId[] = ['salary', 'freelance', 'investment', 'other_income'];
+    // Default hidden categories for new users
+    const defaultHidden: CategoryId[] = [
+      'entertainment',
+      'rent',
+      'freelance',
+      'other_income'
+    ];
     return saved ? new Set(JSON.parse(saved)) : new Set(defaultHidden);
   });
+
+  const [contextMenuState, setContextMenuState] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    category: Category | null;
+  }>({ visible: false, x: 0, y: 0, category: null });
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   const toggleCategoryVisibility = (id: CategoryId, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -49,6 +69,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       return next;
     });
   };
+
+  // Close context menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = () => setContextMenuState({ ...contextMenuState, visible: false });
+    if (contextMenuState.visible) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [contextMenuState.visible]);
 
   // Take latest 5 transactions
   const latestTransactions = transactions.slice(0, 5);
@@ -128,7 +159,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               title={isEditMode ? 'Done' : 'Edit Categories'}
               className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                 isEditMode
-                  ? 'bg-primary text-white'
+                  ? 'bg-black/50 dark:bg-white/50 text-white dark:text-black grayscale'
                   : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary'
               }`}
             >
@@ -149,8 +180,39 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div
                 key={cat.id}
                 onClick={() => !isEditMode && onSelectCategory(cat.id)}
+                onContextMenu={(e) => {
+                  if (isEditMode && onDeleteCategory) {
+                    e.preventDefault();
+                    setContextMenuState({
+                      visible: true,
+                      x: e.clientX,
+                      y: e.clientY,
+                      category: cat,
+                    });
+                  }
+                }}
+                onTouchStart={(e) => {
+                  if (!isEditMode) return;
+                  const timer = setTimeout(() => {
+                    setContextMenuState({
+                      visible: true,
+                      x: e.touches[0].clientX,
+                      y: e.touches[0].clientY,
+                      category: cat,
+                    });
+                  }, 800);
+                  (e.target as any).dataset.timer = timer.toString();
+                }}
+                onTouchEnd={(e) => {
+                  const timer = (e.target as any).dataset.timer;
+                  if (timer) clearTimeout(parseInt(timer));
+                }}
+                onTouchMove={(e) => {
+                  const timer = (e.target as any).dataset.timer;
+                  if (timer) clearTimeout(parseInt(timer));
+                }}
                 className={`p-3 rounded-2xl text-white flex flex-col justify-between h-[100px] transition-all shadow-sm overflow-hidden relative group ${
-                  !isEditMode ? 'cursor-pointer active-scale hover:shadow-md' : ''
+                  !isEditMode ? 'cursor-pointer active-scale hover:shadow-md' : 'cursor-default'
                 } ${isEditMode && isHidden ? 'opacity-50 grayscale' : ''}`}
                 style={{ backgroundColor: cat.bgHex }}
               >
@@ -260,6 +322,52 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           )}
         </div>
       </section>
+      {/* Context Menu for Edit Mode */}
+      {contextMenuState.visible && (
+        <div
+          className="fixed z-50 bg-bg-secondary border border-border-color shadow-lg rounded-xl overflow-hidden py-1 min-w-[120px]"
+          style={{ top: contextMenuState.y, left: contextMenuState.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="w-full text-left px-4 py-2 text-sm text-text-primary hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-2 transition-colors"
+            onClick={() => {
+              setEditingCategory(contextMenuState.category);
+              setIsEditModalOpen(true);
+              setContextMenuState({ ...contextMenuState, visible: false });
+            }}
+          >
+            <span className="material-symbols-outlined text-[16px]">edit</span>
+            Edit
+          </button>
+          <button
+            className="w-full text-left px-4 py-2 text-sm text-[#ba1a1a] hover:bg-[#ba1a1a]/10 flex items-center gap-2 transition-colors"
+            onClick={() => {
+              if (onDeleteCategory && contextMenuState.category) {
+                onDeleteCategory(contextMenuState.category.id);
+              }
+              setContextMenuState({ ...contextMenuState, visible: false });
+            }}
+          >
+            <span className="material-symbols-outlined text-[16px]">delete</span>
+            Delete
+          </button>
+        </div>
+      )}
+
+      {/* Edit Category Modal */}
+      {onEditCategory && (
+        <EditCategoryModal
+          isOpen={isEditModalOpen}
+          category={editingCategory}
+          currency={currency}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingCategory(null);
+          }}
+          onEditCategory={onEditCategory}
+        />
+      )}
     </main>
   );
 };
