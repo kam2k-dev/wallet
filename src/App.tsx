@@ -27,16 +27,11 @@ interface ToastState {
 
 export default function App() {
   // Auth State
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('auth_user');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return null;
-      }
-    }
-    return null;
+  const [currentUser, setCurrentUser] = useState<User | null>({
+    id: 'mock-user-1',
+    name: 'Bypassed User',
+    phone: '6281234567890',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=bypassed'
   });
 
   const [currentTab, setCurrentTab] = useState<ViewTab>('dashboard'); // Default to Dashboard (home) screen
@@ -272,6 +267,32 @@ export default function App() {
     showToast(`Category "${newCat.name}" created!`, 'success');
   };
 
+  const handleDeleteCategory = async (id: CategoryId) => {
+    const categoryToDelete = categories.find((c) => c.id === id);
+    if (!categoryToDelete) return;
+
+    if (window.confirm(`Are you sure you want to delete category "${categoryToDelete.name}"? All related transactions will remain but may lose their category styling.`)) {
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+      showToast(`Deleted category "${categoryToDelete.name}"`, 'delete');
+    }
+  };
+
+  const handleEditCategory = async (updatedCat: Category) => {
+    // Persist to backend (dummy JSON in dev, PostgreSQL in prod)
+    try {
+      // In a real app we'd have api.updateCategory(updatedCat)
+      // await api.updateCategory(updatedCat);
+    } catch (err) {
+      console.warn('Failed to update category to API:', err);
+    }
+
+    setCategories((prevCats) =>
+      prevCats.map((cat) => (cat.id === updatedCat.id ? updatedCat : cat))
+    );
+
+    showToast(`Category "${updatedCat.name}" updated!`, 'success');
+  };
+
   // Export to CSV
   const handleExportCSV = () => {
     if (transactions.length === 0) {
@@ -395,6 +416,8 @@ export default function App() {
           onSelectTransaction={setSelectedTransaction}
           onSeeAllTransactions={() => setCurrentTab('analysis')}
           onAddCategory={() => setIsAddCategoryModalOpen(true)}
+          onDeleteCategory={handleDeleteCategory}
+          onEditCategory={handleEditCategory}
         />
       )}
 

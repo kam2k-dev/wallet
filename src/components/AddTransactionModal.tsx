@@ -160,12 +160,17 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               Amount ({activeCur.symbol})
             </label>
             <input
-              type="number"
-              step="any"
+              type="text"
+              inputMode="numeric"
               required
               placeholder="0.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              value={amount ? Number(amount.replace(/,/g, '')).toLocaleString('en-US') : ''}
+              onChange={(e) => {
+                const rawValue = e.target.value.replace(/,/g, '');
+                if (!isNaN(Number(rawValue))) {
+                  setAmount(rawValue);
+                }
+              }}
               className="w-full px-4 py-2.5 bg-bg-tertiary rounded-2xl text-[16px] font-bold text-text-primary outline-none focus:ring-2 focus:ring-[#0058be]"
             />
           </div>
