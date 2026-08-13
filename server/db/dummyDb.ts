@@ -26,6 +26,7 @@ export interface DbCategory {
   bgHex: string;
   icon: string;
   budget?: number;
+  type?: 'expense' | 'income';
 }
 
 export interface DbUser {

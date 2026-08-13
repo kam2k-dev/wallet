@@ -213,9 +213,15 @@ export const waAuthService = {
     const user: User = {
       id: existing?.id || `usr_${cleanPhone || 'demo'}`,
       phone: mockPhone,
+<<<<<<< Updated upstream
       name: username,
       avatar: existing?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${cleanPhone || 'demo'}`,
       createdAt: existing?.createdAt || now,
+=======
+      name: `User ${cleanPhone || 'demo'}`,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${cleanPhone || 'demo'}`,
+      createdAt: new Date().toISOString(),
+>>>>>>> Stashed changes
     };
 
     await db.upsertUser({

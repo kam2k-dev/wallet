@@ -49,6 +49,7 @@ function rowToCategory(row: any): DbCategory {
     color: row.color,
     bgHex: row.bg_hex,
     icon: row.icon,
+    type: row.type,
   };
 }
 
@@ -240,12 +241,12 @@ export const postgresDb = {
 
   async addCategory(cat: DbCategory): Promise<DbCategory> {
     await getPool().query(
-      `INSERT INTO categories (id, name, amount, color, bg_hex, icon) 
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO categories (id, name, amount, color, bg_hex, icon, type) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (id) DO UPDATE 
        SET name = EXCLUDED.name, amount = EXCLUDED.amount, color = EXCLUDED.color, 
-           bg_hex = EXCLUDED.bg_hex, icon = EXCLUDED.icon`,
-      [cat.id, cat.name, cat.amount, cat.color, cat.bgHex, cat.icon]
+           bg_hex = EXCLUDED.bg_hex, icon = EXCLUDED.icon, type = EXCLUDED.type`,
+      [cat.id, cat.name, cat.amount, cat.color, cat.bgHex, cat.icon, cat.type]
     );
     return cat;
   },
@@ -261,9 +262,9 @@ export const postgresDb = {
       // Insert new categories
       for (const cat of categories) {
         await client.query(
-          `INSERT INTO categories (id, name, amount, color, bg_hex, icon) 
-           VALUES ($1, $2, $3, $4, $5, $6)`,
-          [cat.id, cat.name, cat.amount, cat.color, cat.bgHex, cat.icon]
+          `INSERT INTO categories (id, name, amount, color, bg_hex, icon, type) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [cat.id, cat.name, cat.amount, cat.color, cat.bgHex, cat.icon, cat.type]
         );
       }
       

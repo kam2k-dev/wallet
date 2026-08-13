@@ -8,7 +8,8 @@ create table if not exists categories (
   amount numeric not null default 0,
   color text not null,
   bg_hex text not null,
-  icon text not null
+  icon text not null,
+  type text
 );
 
 -- Users table (unique per WhatsApp number)
