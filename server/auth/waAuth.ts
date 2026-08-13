@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { db } from '../db/index';
 
 export interface User {
   id: string;
@@ -111,7 +112,7 @@ export const waAuthService = {
    * Handle incoming WhatsApp message from Baileys bot
    * Expected message format: "LOGIN 123456" or just "123456"
    */
-  handleIncomingMessage(fromPhone: string, messageText: string): { success: boolean; session?: AuthSession; error?: string } {
+  async handleIncomingMessage(fromPhone: string, messageText: string, waName?: string): Promise<{ success: boolean; session?: AuthSession; error?: string }> {
     cleanupExpiredSessions();
 
     if (!messageText) {
@@ -150,14 +151,31 @@ export const waAuthService = {
       ? `+62${cleanPhone.slice(1)}`
       : `+${cleanPhone}`;
 
-    // Create or resolve user
+    // Look up existing user by phone number, or create a new one
+    let existing = await db.getUserByPhone(formattedPhone);
+    const now = new Date().toISOString();
+
+    // Use WhatsApp display name as username (fallback to phone-derived name)
+    const username = (waName && waName.trim()) || existing?.name || `User ${cleanPhone.slice(-4)}`;
+
     const user: User = {
-      id: `usr_${cleanPhone}`,
+      id: existing?.id || `usr_${cleanPhone}`,
       phone: formattedPhone,
-      name: `User ${cleanPhone.slice(-4)}`,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${cleanPhone}`,
-      createdAt: new Date().toISOString(),
+      name: username,
+      avatar: existing?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${cleanPhone}`,
+      createdAt: existing?.createdAt || now,
     };
+
+    // Upsert user (per number) into the database
+    await db.upsertUser({
+      id: user.id,
+      phone: formattedPhone,
+      name: user.name,
+      avatar: user.avatar,
+      createdAt: user.createdAt,
+      updatedAt: now,
+      loginCount: (existing?.loginCount || 0) + 1,
+    });
 
     const token = `jwt_${crypto.randomBytes(24).toString('hex')}`;
 
@@ -174,7 +192,7 @@ export const waAuthService = {
   /**
    * Mock verification for local development testing without running Baileys
    */
-  mockVerify(sessionId: string, mockPhone: string = '+628123456789'): { success: boolean; session?: AuthSession; error?: string } {
+  async mockVerify(sessionId: string, mockPhone: string = '+628123456789', waName?: string): Promise<{ success: boolean; session?: AuthSession; error?: string }> {
     const session = sessions.get(sessionId);
     if (!session) {
       return { success: false, error: 'Session not found' };
@@ -187,13 +205,28 @@ export const waAuthService = {
     }
 
     const cleanPhone = mockPhone.replace(/[^0-9]/g, '');
+    const now = new Date().toISOString();
+
+    let existing = await db.getUserByPhone(mockPhone);
+    const username = (waName && waName.trim()) || existing?.name || 'Demo User';
+
     const user: User = {
-      id: `usr_${cleanPhone || 'demo'}`,
+      id: existing?.id || `usr_${cleanPhone || 'demo'}`,
       phone: mockPhone,
-      name: 'Demo User',
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${cleanPhone || 'demo'}`,
-      createdAt: new Date().toISOString(),
+      name: username,
+      avatar: existing?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${cleanPhone || 'demo'}`,
+      createdAt: existing?.createdAt || now,
     };
+
+    await db.upsertUser({
+      id: user.id,
+      phone: mockPhone,
+      name: user.name,
+      avatar: user.avatar,
+      createdAt: user.createdAt,
+      updatedAt: now,
+      loginCount: (existing?.loginCount || 0) + 1,
+    });
 
     const token = `jwt_${crypto.randomBytes(24).toString('hex')}`;
 

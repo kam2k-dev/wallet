@@ -7,7 +7,7 @@
 import { dummyDb } from "./dummyDb";
 import { postgresDb } from "./postgresDb";
 
-export type { DbTransaction, DbCategory } from "./dummyDb";
+export type { DbTransaction, DbCategory, DbUser } from "./dummyDb";
 
 const mode = (process.env.DB_MODE || "dummy").toLowerCase();
 

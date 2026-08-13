@@ -52,9 +52,9 @@ async function startServer() {
 
   // 3. Webhook for Baileys self-hosted bot
   // Baileys bot sends: { from: "628123456789@s.whatsapp.net", text: "LOGIN 123456" }
-  app.post("/api/auth/wa/webhook", (req, res) => {
+  app.post("/api/auth/wa/webhook", async (req, res) => {
     try {
-      const { from, text, message } = req.body || {};
+      const { from, text, message, name } = req.body || {};
       const messageText = text || message || "";
       const fromPhone = from || "";
 
@@ -62,7 +62,7 @@ async function startServer() {
         return res.status(400).json({ success: false, error: "Missing 'from' or 'text' in payload" });
       }
 
-      const result = waAuthService.handleIncomingMessage(fromPhone, messageText);
+      const result = await waAuthService.handleIncomingMessage(fromPhone, messageText, name);
       if (!result.success) {
         return res.status(400).json(result);
       }
@@ -160,6 +160,17 @@ async function startServer() {
       res.json({ success: true });
     } catch (error: any) {
       console.error("PUT /api/categories error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET all registered WhatsApp users (per number)
+  app.get("/api/users", async (_req, res) => {
+    try {
+      const users = await db.getUsers();
+      res.json(users);
+    } catch (error: any) {
+      console.error("GET /api/users error:", error);
       res.status(500).json({ error: error.message });
     }
   });

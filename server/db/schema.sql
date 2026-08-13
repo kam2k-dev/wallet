@@ -11,6 +11,17 @@ create table if not exists categories (
   icon text not null
 );
 
+-- Users table (unique per WhatsApp number)
+create table if not exists users (
+  id text primary key,
+  phone text not null unique,
+  name text not null,
+  avatar text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  login_count integer not null default 0
+);
+
 -- Transactions table
 create table if not exists transactions (
   id text primary key,
