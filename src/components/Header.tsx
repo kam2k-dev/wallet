@@ -92,10 +92,14 @@ export const Header: React.FC<HeaderProps> = ({
       {user && (
         <button
           onClick={onProfileClick}
-          className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#25D366] to-[#128C7E] text-white flex items-center justify-center text-[12px] font-bold shadow-sm hover:opacity-90 transition-all active-scale border border-white/20"
+          className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#2170e4] to-[#0051a8] text-white flex items-center justify-center text-[12px] font-bold shadow-sm hover:opacity-90 transition-all active-scale border border-white/20 overflow-hidden"
           title={user.name || 'Profile'}
         >
-          {userInitials}
+          {user.avatar ? (
+            <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+          ) : (
+            userInitials
+          )}
         </button>
       )}
     </header>
