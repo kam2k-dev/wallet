@@ -56,38 +56,44 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     : 'WA';
 
   return (
-    <main className="max-w-md mx-auto px-5 pt-4 space-y-5 pb-28">
+    <main className="max-w-md mx-auto px-5 pt-6 space-y-6 pb-28">
       {/* Profile Header */}
-      <section className="bg-bg-secondary p-6 rounded-3xl border border-border-color shadow-sm text-center space-y-3 relative overflow-hidden">
-        {user?.avatar ? (
-          <img
-            src={user.avatar}
-            alt={user.name}
-            className="w-20 h-20 rounded-full mx-auto shadow-md border-2 border-[#2170e4]"
-          />
-        ) : (
-          <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#2170e4] to-[#0058be] text-white flex items-center justify-center text-[26px] font-bold mx-auto shadow-md shadow-[#2170e4]/20">
-            {userInitials}
+      <section className="bg-gradient-to-br from-bg-secondary to-bg-primary p-8 rounded-[32px] border border-border-color shadow-sm text-center relative overflow-hidden group">
+        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-[#2170e4]/10 to-transparent pointer-events-none" />
+        
+        <div className="relative z-10">
+          <div className="relative inline-block mb-4">
+            {user?.avatar ? (
+              <img
+                src={user.avatar}
+                alt={user.name}
+                className="w-24 h-24 rounded-full mx-auto shadow-xl border-4 border-bg-secondary object-cover"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#2170e4] to-[#004291] text-white flex items-center justify-center text-3xl font-bold mx-auto shadow-xl border-4 border-bg-secondary">
+                {userInitials}
+              </div>
+            )}
+            <div className="absolute bottom-0 right-0 w-6 h-6 bg-[#27AE60] border-2 border-bg-secondary rounded-full"></div>
           </div>
-        )}
-        <div>
-          <h2 className="text-[20px] font-bold text-text-primary">
+          
+          <h2 className="text-2xl font-extrabold text-text-primary tracking-tight">
             {user?.name || 'Tamu'}
           </h2>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2170e4]/10 border border-[#2170e4]/20 text-[#2170e4] text-[12px] font-medium mt-1">
-            <span className="material-symbols-outlined text-[14px]">mail</span>
+          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#2170e4]/5 text-[#2170e4] text-xs font-semibold mt-2">
+            <span className="material-symbols-outlined text-[16px]">account_circle</span>
             <span>{user?.email || 'Belum Terhubung'}</span>
           </div>
         </div>
       </section>
 
       {/* Account Preferences */}
-      <section className="bg-bg-secondary rounded-3xl p-4 border border-border-color shadow-sm space-y-1">
-        <h3 className="text-[14px] font-bold text-text-secondary px-2 py-1">Preferences</h3>
+      <section className="bg-bg-secondary/80 backdrop-blur-md rounded-3xl p-5 border border-border-color shadow-sm space-y-2">
+        <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider px-2 pb-2">Preferences</h3>
 
         <div
           onClick={() => setIsCurrencyPickerOpen(!isCurrencyPickerOpen)}
-          className="flex items-center justify-between p-3 hover:bg-bg-primary rounded-2xl cursor-pointer"
+          className="flex items-center justify-between p-3.5 hover:bg-bg-primary rounded-2xl cursor-pointer transition-colors"
         >
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-[#0058be]">payments</span>
@@ -152,71 +158,77 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
         <div 
           onClick={onToggleDarkMode}
-          className="flex items-center justify-between p-3 hover:bg-bg-primary rounded-2xl cursor-pointer"
+          className="flex items-center justify-between p-3.5 hover:bg-bg-primary rounded-2xl cursor-pointer transition-colors"
         >
           <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-[#0058be]">
-              {isDarkMode ? 'dark_mode' : 'light_mode'}
-            </span>
-            <span className="text-[14px] font-medium text-text-primary">Dark Mode</span>
+            <div className="w-8 h-8 rounded-full bg-[#1c1c1e]/5 dark:bg-white/10 flex items-center justify-center">
+              <span className="material-symbols-outlined text-text-primary text-[18px]">
+                {isDarkMode ? 'dark_mode' : 'light_mode'}
+              </span>
+            </div>
+            <span className="text-[15px] font-medium text-text-primary">Theme Appearance</span>
           </div>
-          <div className={`w-10 h-6 rounded-full p-1 transition-colors ${isDarkMode ? 'bg-[#2170e4]' : 'bg-gray-300'}`}>
-            <div className={`w-4 h-4 rounded-full bg-bg-secondary transition-transform ${isDarkMode ? 'translate-x-4' : 'translate-x-0'}`} />
+          <div className={`w-11 h-6 rounded-full p-1 transition-colors ${isDarkMode ? 'bg-[#2170e4]' : 'bg-[#e5e5ea]'}`}>
+            <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isDarkMode ? 'translate-x-5' : 'translate-x-0'}`} />
           </div>
         </div>
       </section>
 
       {/* Data Management & Export */}
-      <section className="bg-bg-secondary rounded-3xl p-4 border border-border-color shadow-sm space-y-1">
-        <h3 className="text-[14px] font-bold text-text-secondary px-2 py-1">Data & Backup</h3>
+      <section className="bg-bg-secondary/80 backdrop-blur-md rounded-3xl p-5 border border-border-color shadow-sm space-y-2">
+        <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider px-2 pb-2">Data & Backup</h3>
 
         {onExportCSV && (
           <div
             onClick={onExportCSV}
-            className="flex items-center justify-between p-3 hover:bg-bg-primary rounded-2xl cursor-pointer"
+            className="flex items-center justify-between p-3.5 hover:bg-[#27AE60]/10 rounded-2xl cursor-pointer group transition-colors"
           >
             <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-[#27AE60]">table_view</span>
-              <span className="text-[14px] font-medium text-text-primary">Export to CSV</span>
+              <div className="w-8 h-8 rounded-full bg-[#27AE60]/10 flex items-center justify-center group-hover:bg-[#27AE60]/20 transition-colors">
+                <span className="material-symbols-outlined text-[#27AE60] text-[18px]">table_view</span>
+              </div>
+              <span className="text-[15px] font-medium text-text-primary">Export to CSV</span>
             </div>
-            <span className="material-symbols-outlined text-text-secondary text-[18px]">download</span>
+            <span className="material-symbols-outlined text-text-secondary group-hover:text-[#27AE60] transition-colors">download</span>
           </div>
         )}
 
         {onExportJSON && (
           <div
             onClick={onExportJSON}
-            className="flex items-center justify-between p-3 hover:bg-bg-primary rounded-2xl cursor-pointer"
+            className="flex items-center justify-between p-3.5 hover:bg-[#00bcd4]/10 rounded-2xl cursor-pointer group transition-colors"
           >
             <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-[#00bcd4]">data_object</span>
-              <span className="text-[14px] font-medium text-text-primary">Backup Data (JSON)</span>
+              <div className="w-8 h-8 rounded-full bg-[#00bcd4]/10 flex items-center justify-center group-hover:bg-[#00bcd4]/20 transition-colors">
+                <span className="material-symbols-outlined text-[#00bcd4] text-[18px]">data_object</span>
+              </div>
+              <span className="text-[15px] font-medium text-text-primary">Backup Data (JSON)</span>
             </div>
-            <span className="material-symbols-outlined text-text-secondary text-[18px]">download</span>
+            <span className="material-symbols-outlined text-text-secondary group-hover:text-[#00bcd4] transition-colors">download</span>
           </div>
         )}
       </section>
 
       {/* Account Actions / Logout */}
       {onLogout && (
-        <section className="bg-bg-secondary rounded-3xl p-4 border border-border-color shadow-sm space-y-2">
-          <h3 className="text-[14px] font-bold text-text-secondary px-2 py-1">Account</h3>
+        <section className="bg-bg-secondary/80 backdrop-blur-md rounded-3xl p-5 border border-border-color shadow-sm space-y-2">
+          <h3 className="text-xs font-bold text-text-secondary uppercase tracking-wider px-2 pb-2">Account Options</h3>
 
           {showLogoutConfirm ? (
-            <div className="p-3 bg-[#ba1a1a]/10 border border-[#ba1a1a]/20 rounded-2xl space-y-3 animate-in fade-in">
-              <p className="text-[13px] font-medium text-[#ba1a1a] text-center">
+            <div className="p-4 bg-[#ba1a1a]/5 border border-[#ba1a1a]/20 rounded-2xl space-y-4 animate-in fade-in">
+              <p className="text-[14px] font-medium text-[#ba1a1a] text-center">
                 Apakah Anda yakin ingin keluar dari akun ini?
               </p>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={() => setShowLogoutConfirm(false)}
-                  className="flex-1 py-2 rounded-xl bg-bg-secondary text-text-primary text-[13px] font-medium border border-border-color active-scale"
+                  className="flex-1 py-2.5 rounded-xl bg-bg-secondary text-text-primary text-[14px] font-semibold border border-border-color hover:bg-bg-primary transition-colors"
                 >
                   Batal
                 </button>
                 <button
                   onClick={onLogout}
-                  className="flex-1 py-2 rounded-xl bg-[#ba1a1a] text-white text-[13px] font-semibold active-scale shadow-sm"
+                  className="flex-1 py-2.5 rounded-xl bg-[#ba1a1a] text-white text-[14px] font-semibold hover:bg-[#93000a] transition-colors shadow-sm"
                 >
                   Ya, Keluar
                 </button>
@@ -225,29 +237,24 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           ) : (
             <div
               onClick={() => setShowLogoutConfirm(true)}
-              className="flex items-center justify-between p-3 hover:bg-[#ba1a1a]/10 rounded-2xl cursor-pointer text-[#ba1a1a] transition-colors"
+              className="flex items-center justify-between p-3.5 hover:bg-[#ba1a1a]/10 rounded-2xl cursor-pointer group transition-colors"
             >
               <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-[#ba1a1a]">logout</span>
-                <span className="text-[14px] font-medium">Keluar dari Akun</span>
+                <div className="w-8 h-8 rounded-full bg-[#ba1a1a]/10 flex items-center justify-center group-hover:bg-[#ba1a1a]/20 transition-colors">
+                  <span className="material-symbols-outlined text-[#ba1a1a] text-[18px]">logout</span>
+                </div>
+                <span className="text-[15px] font-medium text-[#ba1a1a]">Keluar dari Akun</span>
               </div>
-              <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+              <span className="material-symbols-outlined text-[#ba1a1a]/50 group-hover:text-[#ba1a1a] transition-colors">chevron_right</span>
             </div>
           )}
         </section>
       )}
 
       {/* App Info */}
-      <section className="bg-bg-secondary rounded-3xl p-4 border border-border-color shadow-sm space-y-1">
-        <h3 className="text-[14px] font-bold text-text-secondary px-2 py-1">App Info</h3>
-
-        <div className="flex items-center justify-between p-3 hover:bg-bg-primary rounded-2xl cursor-pointer">
-          <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-[#0058be]">info</span>
-            <span className="text-[14px] font-medium text-text-primary">Version</span>
-          </div>
-          <span className="text-[12px] text-[#77767b]">v2.5.0</span>
-        </div>
+      <section className="bg-transparent px-4 py-2 flex flex-col items-center justify-center space-y-1">
+        <div className="text-text-primary font-bold text-sm tracking-wide">DompetKu App</div>
+        <div className="text-[11px] text-text-secondary font-medium">Versi 2.5.0 • Build 8421</div>
       </section>
     </main>
   );
