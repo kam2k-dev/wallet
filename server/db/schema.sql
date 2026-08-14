@@ -42,11 +42,13 @@ create table if not exists transactions (
 create index if not exists idx_transactions_raw_date on transactions (raw_date desc);
 
 -- Seed categories
-insert into categories (id, name, amount, color, bg_hex, icon) values
-  ('groceries', 'Groceries', 1245.30, '#9466ff', '#9c27b0', 'shopping_bag'),
-  ('transport', 'Transport', 540.00, '#2170e4', '#2196f3', 'directions_car'),
-  ('entertainment', 'Entertainment', 600.00, '#27AE60', '#4caf50', 'event'),
-  ('rent', 'Rent & Utilities', 1080.50, '#F39C12', '#ff9800', 'home')
+insert into categories (id, name, amount, color, bg_hex, icon, type) values
+  ('groceries', 'Groceries', 0, '#9466ff', '#9c27b0', 'shopping_bag', 'expense'),
+  ('transport', 'Transport', 0, '#2170e4', '#2196f3', 'directions_car', 'expense'),
+  ('entertainment', 'Entertainment', 0, '#27AE60', '#4caf50', 'event', 'expense'),
+  ('rent', 'Rent & Utilities', 0, '#F39C12', '#ff9800', 'home', 'expense'),
+  ('salary', 'Salary', 0, '#27AE60', '#2ecc71', 'payments', 'income'),
+  ('freelance', 'Freelance', 0, '#00bcd4', '#0097a7', 'work', 'income')
 on conflict (id) do nothing;
 
 -- Seed a couple of transactions

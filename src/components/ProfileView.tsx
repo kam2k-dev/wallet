@@ -72,11 +72,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         )}
         <div>
           <h2 className="text-[20px] font-bold text-text-primary">
-            {user?.name || 'Google User'}
+            {user?.name || 'Tamu'}
           </h2>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2170e4]/10 border border-[#2170e4]/20 text-[#2170e4] text-[12px] font-medium mt-1">
             <span className="material-symbols-outlined text-[14px]">mail</span>
-            <span>{user?.email || 'Google Connected'}</span>
+            <span>{user?.email || 'Belum Terhubung'}</span>
           </div>
         </div>
       </section>
