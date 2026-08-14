@@ -12,10 +12,10 @@ create table if not exists categories (
   type text
 );
 
--- Users table (unique per WhatsApp number)
+-- Users table (unique per email)
 create table if not exists users (
   id text primary key,
-  phone text not null unique,
+  email text not null unique,
   name text not null,
   avatar text,
   created_at timestamptz not null default now(),

@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { db } from "./server/db/index";
-import { waAuthService } from "./server/auth/waAuth";
+import { verifyGoogleAuthToken } from "./server/auth/googleAuth";
 
 async function startServer() {
   const app = express();
@@ -15,66 +15,19 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
-  // ─── WhatsApp Reverse Auth API ──────────────────────────────────────────
+  // ─── Google OAuth Auth API ──────────────────────────────────────────
 
-  // 1. Initiate WhatsApp Reverse Auth session
-  app.post("/api/auth/wa/initiate", (req, res) => {
+  app.post("/api/auth/google", async (req, res) => {
     try {
-      const { phoneHint } = req.body || {};
-      const session = waAuthService.initiateSession(phoneHint);
-      res.json({ success: true, session });
-    } catch (error: any) {
-      console.error("POST /api/auth/wa/initiate error:", error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-
-  // 2. Check status of an auth session (polling endpoint)
-  app.get("/api/auth/wa/status/:sessionId", (req, res) => {
-    try {
-      const { sessionId } = req.params;
-      const session = waAuthService.getSessionStatus(sessionId);
-      if (!session) {
-        return res.status(404).json({ success: false, error: "Session not found or expired" });
+      const { credential } = req.body || {};
+      if (!credential) {
+        return res.status(400).json({ success: false, error: "Credential token Google diperlukan" });
       }
-      res.json({
-        success: true,
-        status: session.status,
-        session,
-        user: session.user,
-        token: session.token,
-      });
+      const { user, token } = await verifyGoogleAuthToken(credential);
+      res.json({ success: true, user, token });
     } catch (error: any) {
-      console.error("GET /api/auth/wa/status error:", error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-
-  // 3. Webhook for Baileys self-hosted bot
-  // Baileys bot sends: { from: "628123456789@s.whatsapp.net", text: "LOGIN 123456" }
-  app.post("/api/auth/wa/webhook", async (req, res) => {
-    try {
-      const { from, text, message, name } = req.body || {};
-      const messageText = text || message || "";
-      const fromPhone = from || "";
-
-      if (!fromPhone || !messageText) {
-        return res.status(400).json({ success: false, error: "Missing 'from' or 'text' in payload" });
-      }
-
-      const result = await waAuthService.handleIncomingMessage(fromPhone, messageText, name);
-      if (!result.success) {
-        return res.status(400).json(result);
-      }
-
-      res.json({
-        success: true,
-        message: "Authentication successful",
-        session: result.session,
-      });
-    } catch (error: any) {
-      console.error("POST /api/auth/wa/webhook error:", error);
-      res.status(500).json({ success: false, error: error.message });
+      console.error("POST /api/auth/google error:", error);
+      res.status(400).json({ success: false, error: error.message || "Gagal verifikasi Google Login" });
     }
   });
 

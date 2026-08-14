@@ -345,7 +345,7 @@ export default function App() {
     }
   };
 
-  // If user is not logged in, render the modern WhatsApp Login Page
+  // If user is not logged in, render the Google Login Page
   if (!currentUser) {
     return (
       <LoginPage

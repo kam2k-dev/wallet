@@ -59,16 +59,24 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     <main className="max-w-md mx-auto px-5 pt-4 space-y-5 pb-28">
       {/* Profile Header */}
       <section className="bg-bg-secondary p-6 rounded-3xl border border-border-color shadow-sm text-center space-y-3 relative overflow-hidden">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#25D366] to-[#128C7E] text-white flex items-center justify-center text-[26px] font-bold mx-auto shadow-md shadow-[#25D366]/20">
-          {userInitials}
-        </div>
+        {user?.avatar ? (
+          <img
+            src={user.avatar}
+            alt={user.name}
+            className="w-20 h-20 rounded-full mx-auto shadow-md border-2 border-[#2170e4]"
+          />
+        ) : (
+          <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#2170e4] to-[#0058be] text-white flex items-center justify-center text-[26px] font-bold mx-auto shadow-md shadow-[#2170e4]/20">
+            {userInitials}
+          </div>
+        )}
         <div>
           <h2 className="text-[20px] font-bold text-text-primary">
-            {user?.name || 'WhatsApp User'}
+            {user?.name || 'Google User'}
           </h2>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] text-[12px] font-medium mt-1">
-            <WhatsAppIcon size={14} />
-            <span>{user?.phone || 'WhatsApp Connected'}</span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2170e4]/10 border border-[#2170e4]/20 text-[#2170e4] text-[12px] font-medium mt-1">
+            <span className="material-symbols-outlined text-[14px]">mail</span>
+            <span>{user?.email || 'Google Connected'}</span>
           </div>
         </div>
       </section>

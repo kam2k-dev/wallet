@@ -17,22 +17,17 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  // ─── WhatsApp Reverse Auth ──────────────────────────────────────────────
-  async initiateWaAuth(phoneHint?: string): Promise<{ success: boolean; session: AuthSession }> {
-    return request<{ success: boolean; session: AuthSession }>('/api/auth/wa/initiate', {
-      method: 'POST',
-      body: JSON.stringify({ phoneHint }),
-    });
-  },
-
-  async checkWaAuthStatus(sessionId: string): Promise<{
+  // ─── Google OAuth Login ─────────────────────────────────────────────
+  async loginWithGoogle(credential: string): Promise<{
     success: boolean;
-    status: 'pending' | 'verified' | 'expired';
-    session?: AuthSession;
     user?: User;
     token?: string;
+    error?: string;
   }> {
-    return request(`/api/auth/wa/status/${sessionId}`);
+    return request<{ success: boolean; user?: User; token?: string; error?: string }>('/api/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ credential }),
+    });
   },
 
   // ─── Data Endpoints ─────────────────────────────────────────────────────

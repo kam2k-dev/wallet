@@ -35,7 +35,7 @@ export interface ChartPoint {
 
 export interface User {
   id: string;
-  phone: string;
+  email: string;
   name: string;
   avatar?: string;
   createdAt: string;
@@ -56,7 +56,6 @@ export interface AuthSession {
 
 export interface AuthResponse {
   success: boolean;
-  session?: AuthSession;
   user?: User;
   token?: string;
   error?: string;

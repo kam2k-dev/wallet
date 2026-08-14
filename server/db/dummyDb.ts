@@ -31,7 +31,7 @@ export interface DbCategory {
 
 export interface DbUser {
   id: string;
-  phone: string;
+  email: string;
   name: string;
   avatar?: string;
   createdAt: string;
@@ -240,14 +240,14 @@ export const dummyDb = {
     return read().users;
   },
 
-  async getUserByPhone(phone: string): Promise<DbUser | null> {
+  async getUserByEmail(email: string): Promise<DbUser | null> {
     const db = read();
-    return db.users.find((u) => u.phone === phone) || null;
+    return db.users.find((u) => u.email === email) || null;
   },
 
   async upsertUser(user: DbUser): Promise<DbUser> {
     const db = read();
-    const idx = db.users.findIndex((u) => u.phone === user.phone);
+    const idx = db.users.findIndex((u) => u.email === user.email);
     if (idx >= 0) {
       db.users[idx] = { ...db.users[idx], ...user };
     } else {

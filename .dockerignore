@@ -1,4 +1,5 @@
 node_modules
+<<<<<<< HEAD
 npm-debug.log
 .DS_Store
 dist
@@ -13,3 +14,10 @@ dist-ssr
 *.log
 coverage
 README.md
+=======
+dist
+.git
+.gitignore
+*.md
+.env*
+>>>>>>> 0e4a2f8 (feat: migrate from WhatsApp authentication to Google OAuth)

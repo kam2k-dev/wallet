@@ -56,7 +56,7 @@ function rowToCategory(row: any): DbCategory {
 function rowToUser(row: any): DbUser {
   return {
     id: row.id,
-    phone: row.phone,
+    email: row.email,
     name: row.name,
     avatar: row.avatar ?? undefined,
     createdAt: row.created_at,
@@ -284,19 +284,19 @@ export const postgresDb = {
     return rows.map(rowToUser);
   },
 
-  async getUserByPhone(phone: string): Promise<DbUser | null> {
+  async getUserByEmail(email: string): Promise<DbUser | null> {
     const { rows } = await getPool().query(
-      "SELECT * FROM users WHERE phone = $1",
-      [phone]
+      "SELECT * FROM users WHERE email = $1",
+      [email]
     );
     return rows.length > 0 ? rowToUser(rows[0]) : null;
   },
 
   async upsertUser(user: DbUser): Promise<DbUser> {
     const { rows } = await getPool().query(
-      `INSERT INTO users (id, phone, name, avatar, created_at, updated_at, login_count)
+      `INSERT INTO users (id, email, name, avatar, created_at, updated_at, login_count)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
-       ON CONFLICT (phone) DO UPDATE
+       ON CONFLICT (email) DO UPDATE
        SET name = EXCLUDED.name,
            avatar = EXCLUDED.avatar,
            updated_at = EXCLUDED.updated_at,
@@ -304,7 +304,7 @@ export const postgresDb = {
        RETURNING *`,
       [
         user.id,
-        user.phone,
+        user.email,
         user.name,
         user.avatar ?? null,
         user.createdAt,

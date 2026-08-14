@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   app:
+    image: ghcr.io/${GITHUB_REPOSITORY:-owner/wallet-app}:latest
     build: 
       context: .
       dockerfile: Dockerfile
@@ -14,6 +15,10 @@ services:
       - DB_MODE=postgres
       - DATABASE_URL=postgresql://wallet_prod_user:prod_password_secure@db:5432/wallet_prod
       - APP_URL=https://app.yourdomain.com
+    deploy:
+      resources:
+        limits:
+          memory: 300M
     depends_on:
       db:
         condition: service_healthy
@@ -28,6 +33,10 @@ services:
       - POSTGRES_DB=wallet_prod
     ports:
       - "5432:5432" # Expose DB to port 5432 on VPS
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     volumes:
       - pgdata_prod:/var/lib/postgresql/data
       - ./server/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql # Auto-run schema on first start
