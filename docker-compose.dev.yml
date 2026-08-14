@@ -32,8 +32,6 @@ services:
       - POSTGRES_USER=wallet_dev_user
       - POSTGRES_PASSWORD=dev_password
       - POSTGRES_DB=wallet_dev
-    ports:
-      - "5433:5432" # Expose DB to port 5433 on VPS (optional, for TablePlus)
     deploy:
       resources:
         limits:
