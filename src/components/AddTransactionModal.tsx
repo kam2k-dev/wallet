@@ -94,219 +94,268 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-      <div className="bg-bg-secondary rounded-3xl p-6 w-full max-w-md shadow-2xl border border-border-color space-y-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[20px] font-bold text-text-primary">
-            {initialData ? 'Edit Transaction' : 'Add Transaction'}
-          </h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-200">
+      {/* Dynamic blurred backdrop based on type */}
+      <div 
+        className={`absolute inset-0 backdrop-blur-md transition-colors duration-300 ${
+          type === 'expense' ? 'bg-[#ba1a1a]/20' : 'bg-[#27AE60]/20'
+        }`}
+        onClick={onClose}
+      />
+      
+      <div className="relative w-full max-w-md bg-bg-secondary/90 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/20 dark:border-white/10 flex flex-col max-h-[90vh] overflow-hidden">
+        
+        {/* Header Section */}
+        <div className="px-6 py-5 flex items-center justify-between border-b border-border-color/50">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-sm ${
+              type === 'expense' 
+                ? 'bg-gradient-to-br from-[#ba1a1a] to-[#8c1313]' 
+                : 'bg-gradient-to-br from-[#27AE60] to-[#1e8449]'
+            }`}>
+              <span className="material-symbols-outlined text-[22px]">
+                {type === 'expense' ? 'money_off' : 'attach_money'}
+              </span>
+            </div>
+            <h2 className="text-[20px] font-extrabold text-text-primary tracking-tight">
+              {initialData ? 'Edit Data' : 'Transaksi Baru'}
+            </h2>
+          </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center text-text-secondary hover:bg-[#e1e8fd]"
+            className="w-9 h-9 rounded-full bg-bg-primary hover:bg-[#ba1a1a]/10 hover:text-[#ba1a1a] flex items-center justify-center text-text-secondary transition-colors"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
 
-        {/* Expense / Income Toggle */}
-        <div className="flex bg-bg-tertiary p-1 rounded-2xl border border-border-color">
-          <button
-            type="button"
-            onClick={() => {
-              setType('expense');
-              setCategoryId('groceries');
-            }}
-            className={`flex-1 py-2 text-[14px] font-semibold rounded-xl transition-all ${
-              type === 'expense'
-                ? 'bg-[#ba1a1a] text-white shadow-sm'
-                : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            Expense
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setType('income');
-              setCategoryId('salary');
-            }}
-            className={`flex-1 py-2 text-[14px] font-semibold rounded-xl transition-all ${
-              type === 'income'
-                ? 'bg-[#27AE60] text-white shadow-sm'
-                : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            Income
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-3.5">
-          <div>
-            <label className="block text-[12px] font-medium text-text-secondary mb-1">
-              Title / Merchant
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Supermart Groceries"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-2.5 bg-bg-tertiary rounded-2xl text-[14px] outline-none focus:ring-2 focus:ring-[#0058be]"
+        {/* Content Section */}
+        <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+          {/* Expense / Income Toggle */}
+          <div className="flex bg-bg-primary p-1.5 rounded-[20px] border border-border-color/50 mb-6 relative shadow-inner">
+            <div 
+              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] rounded-2xl transition-all duration-300 shadow-sm ${
+                type === 'expense' 
+                  ? 'bg-gradient-to-r from-[#ba1a1a] to-[#db3e3e] left-1.5' 
+                  : 'bg-gradient-to-r from-[#27AE60] to-[#2ecc71] left-[calc(50%+4px)]'
+              }`}
             />
-          </div>
-
-          <div>
-            <label className="block text-[12px] font-medium text-text-secondary mb-1">
-              Amount ({activeCur.symbol})
-            </label>
-            <input
-              type="text"
-              inputMode="numeric"
-              required
-              placeholder="0.00"
-              value={amount ? Number(amount.replace(/,/g, '')).toLocaleString('en-US') : ''}
-              onChange={(e) => {
-                const rawValue = e.target.value.replace(/,/g, '');
-                if (!isNaN(Number(rawValue))) {
-                  setAmount(rawValue);
-                }
+            <button
+              type="button"
+              onClick={() => {
+                setType('expense');
+                setCategoryId('groceries');
               }}
-              className="w-full px-4 py-2.5 bg-bg-tertiary rounded-2xl text-[16px] font-bold text-text-primary outline-none focus:ring-2 focus:ring-[#0058be]"
-            />
+              className={`flex-1 py-3 text-[14px] font-bold rounded-2xl transition-colors relative z-10 ${
+                type === 'expense' ? 'text-white' : 'text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              Pengeluaran
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setType('income');
+                setCategoryId('salary');
+              }}
+              className={`flex-1 py-3 text-[14px] font-bold rounded-2xl transition-colors relative z-10 ${
+                type === 'income' ? 'text-white' : 'text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              Pemasukan
+            </button>
           </div>
 
-          <div>
-            <label className="block text-[12px] font-medium text-text-secondary mb-1">
-              Category
-            </label>
-            <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto p-1">
-              {categories
-                .filter((cat) => {
-                  if (cat.type) {
-                    return cat.type === type;
-                  }
-                  // Fallback for old data without type
-                  return type === 'income' 
-                    ? ['salary', 'freelance', 'investment', 'other_income'].includes(cat.id) 
-                    : !['salary', 'freelance', 'investment', 'other_income'].includes(cat.id);
-                })
-                .map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setCategoryId(cat.id)}
-                  className={`p-2.5 rounded-2xl border text-left flex items-center gap-2 transition-all ${
-                    categoryId === cat.id
-                      ? 'border-[#2170e4] bg-[#2170e4]/10 text-[#0058be] font-bold'
-                      : 'border-border-color bg-bg-tertiary text-text-secondary'
-                  }`}
-                >
-                  <span
-                    className="w-3 h-3 rounded-full shrink-0"
-                    style={{ backgroundColor: cat.color }}
-                  />
-                  <span className="text-[12px] truncate">{cat.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            {/* Custom Payment Method Dropdown */}
-            <div className="relative">
-              <label className="block text-[12px] font-medium text-text-secondary mb-1">
-                Payment Method
-              </label>
-              <button
-                type="button"
-                onClick={() => setIsPaymentMenuOpen(!isPaymentMenuOpen)}
-                className={`w-full px-3.5 py-2.5 bg-bg-tertiary rounded-2xl text-[13px] font-medium text-text-primary flex items-center justify-between border transition-all ${
-                  isPaymentMenuOpen
-                    ? 'border-[#0058be] ring-2 ring-[#0058be]/20'
-                    : 'border-transparent hover:border-border-color'
-                }`}
-              >
-                <span className="truncate">{paymentMethod}</span>
-                <span
-                  className={`material-symbols-outlined text-[18px] text-text-secondary shrink-0 transition-transform duration-200 ${
-                    isPaymentMenuOpen ? 'rotate-180' : ''
-                  }`}
-                >
-                  expand_more
-                </span>
-              </button>
-
-              {/* Floating Menu */}
-              {isPaymentMenuOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setIsPaymentMenuOpen(false)}
-                  />
-                  <div className="absolute left-0 right-0 bottom-full mb-1.5 max-h-48 overflow-y-auto bg-bg-secondary rounded-2xl border border-border-color shadow-xl p-1.5 z-50 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
-                    {PAYMENT_METHODS.map((pm) => {
-                      const isSelected = paymentMethod === pm;
-                      return (
-                        <button
-                          key={pm}
-                          type="button"
-                          onClick={() => {
-                            setPaymentMethod(pm);
-                            setIsPaymentMenuOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[12px] font-medium transition-colors ${
-                            isSelected
-                              ? 'bg-[#0058be]/10 text-[#0058be] font-semibold'
-                              : 'text-text-primary hover:bg-bg-tertiary'
-                          }`}
-                        >
-                          <span>{pm}</span>
-                          {isSelected && (
-                            <span className="material-symbols-outlined text-[16px] text-[#0058be]">
-                              check
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-[12px] font-medium text-text-secondary mb-1">
-                Date
+          <form id="tx-form" onSubmit={handleSubmit} className="space-y-5">
+            {/* Input Amount */}
+            <div className="bg-bg-primary rounded-3xl p-4 border border-border-color/50 relative overflow-hidden group">
+              <div className={`absolute top-0 left-0 w-1 h-full transition-colors ${
+                type === 'expense' ? 'bg-[#ba1a1a]' : 'bg-[#27AE60]'
+              }`} />
+              <label className="block text-[12px] font-bold text-text-secondary uppercase tracking-wider mb-2 ml-2">
+                Nominal ({activeCur.symbol})
               </label>
               <input
-                type="date"
-                value={rawDate}
-                onChange={(e) => setRawDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-bg-tertiary rounded-2xl text-[13px] font-medium outline-none text-text-primary border border-transparent focus:border-[#0058be] focus:ring-2 focus:ring-[#0058be]/20 transition-all"
+                type="text"
+                inputMode="numeric"
+                required
+                placeholder="0.00"
+                value={amount ? Number(amount.replace(/,/g, '')).toLocaleString('en-US') : ''}
+                onChange={(e) => {
+                  const rawValue = e.target.value.replace(/,/g, '');
+                  if (!isNaN(Number(rawValue))) {
+                    setAmount(rawValue);
+                  }
+                }}
+                className="w-full px-2 bg-transparent text-[36px] font-extrabold text-text-primary outline-none placeholder:text-text-secondary/30"
               />
             </div>
-          </div>
 
-          <div>
-            <label className="block text-[12px] font-medium text-text-secondary mb-1">
-              Notes (Optional)
-            </label>
-            <input
-              type="text"
-              placeholder="Add notes or description..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-4 py-2 bg-bg-tertiary rounded-2xl text-[13px] outline-none focus:ring-2 focus:ring-[#0058be]"
-            />
-          </div>
+            {/* Input Details */}
+            <div className="bg-bg-primary rounded-3xl p-4 border border-border-color/50 space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1.5 ml-1">
+                  Nama Transaksi
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Cth: Makan Siang, Gaji..."
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-bg-secondary rounded-2xl text-[14px] font-medium text-text-primary outline-none focus:ring-2 focus:ring-[#2170e4]/50 border border-transparent focus:border-[#2170e4] transition-all"
+                />
+              </div>
 
+              <div>
+                <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1.5 ml-1">
+                  Kategori
+                </label>
+                <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto p-1 custom-scrollbar">
+                  {categories
+                    .filter((cat) => {
+                      if (cat.type) {
+                        return cat.type === type;
+                      }
+                      return type === 'income' 
+                        ? ['salary', 'freelance', 'investment', 'other_income'].includes(cat.id) 
+                        : !['salary', 'freelance', 'investment', 'other_income'].includes(cat.id);
+                    })
+                    .map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setCategoryId(cat.id)}
+                      className={`p-2.5 rounded-2xl text-left flex items-center gap-2.5 transition-all border ${
+                        categoryId === cat.id
+                          ? 'ring-1'
+                          : 'border-border-color bg-bg-secondary text-text-secondary hover:bg-bg-secondary/80'
+                      }`}
+                      style={categoryId === cat.id ? { 
+                        borderColor: cat.bgHex, 
+                        backgroundColor: `${cat.bgHex}15`,
+                        boxShadow: `0 0 0 1px ${cat.bgHex}4D`
+                      } : {}}
+                    >
+                      <span
+                        className="w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm"
+                        style={{ backgroundColor: cat.bgHex }}
+                      >
+                        <span className="material-symbols-outlined text-[16px]">{cat.icon || 'category'}</span>
+                      </span>
+                      <span className={`text-[12px] font-semibold truncate ${categoryId === cat.id ? 'text-text-primary' : ''}`}>
+                        {cat.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {/* Custom Payment Method Dropdown */}
+              <div className="bg-bg-primary rounded-3xl p-3.5 border border-border-color/50 relative">
+                <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1.5 ml-1">
+                  Metode
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsPaymentMenuOpen(!isPaymentMenuOpen)}
+                  className={`w-full px-3 py-2.5 bg-bg-secondary rounded-2xl text-[13px] font-semibold text-text-primary flex items-center justify-between border transition-all ${
+                    isPaymentMenuOpen
+                      ? 'border-[#2170e4] ring-2 ring-[#2170e4]/20'
+                      : 'border-transparent hover:border-border-color'
+                  }`}
+                >
+                  <span className="truncate">{paymentMethod}</span>
+                  <span className={`material-symbols-outlined text-[18px] text-text-secondary shrink-0 transition-transform duration-200 ${
+                      isPaymentMenuOpen ? 'rotate-180' : ''
+                    }`}>
+                    expand_more
+                  </span>
+                </button>
+
+                {/* Floating Menu */}
+                {isPaymentMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsPaymentMenuOpen(false)}
+                    />
+                    <div className="absolute left-0 right-0 bottom-[calc(100%+8px)] max-h-48 overflow-y-auto bg-bg-secondary/95 backdrop-blur-xl rounded-2xl border border-border-color shadow-2xl p-1.5 z-50 space-y-0.5 animate-in slide-in-from-bottom-2 duration-200 custom-scrollbar">
+                      {PAYMENT_METHODS.map((pm) => {
+                        const isSelected = paymentMethod === pm;
+                        return (
+                          <button
+                            key={pm}
+                            type="button"
+                            onClick={() => {
+                              setPaymentMethod(pm);
+                              setIsPaymentMenuOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition-colors ${
+                              isSelected
+                                ? 'bg-[#2170e4]/10 text-[#2170e4] font-bold'
+                                : 'text-text-primary hover:bg-bg-primary'
+                            }`}
+                          >
+                            <span>{pm}</span>
+                            {isSelected && (
+                              <span className="material-symbols-outlined text-[16px] text-[#2170e4]">check_circle</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="bg-bg-primary rounded-3xl p-3.5 border border-border-color/50">
+                <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1.5 ml-1">
+                  Tanggal
+                </label>
+                <input
+                  type="date"
+                  value={rawDate}
+                  onChange={(e) => setRawDate(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-bg-secondary rounded-2xl text-[13px] font-semibold outline-none text-text-primary border border-transparent focus:border-[#2170e4] focus:ring-2 focus:ring-[#2170e4]/20 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="bg-bg-primary rounded-3xl p-4 border border-border-color/50">
+              <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-wider mb-1.5 ml-1">
+                Catatan (Opsional)
+              </label>
+              <textarea
+                placeholder="Tuliskan catatan tambahan..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2.5 bg-bg-secondary rounded-2xl text-[13px] outline-none focus:ring-2 focus:ring-[#2170e4]/50 border border-transparent focus:border-[#2170e4] transition-all resize-none"
+              />
+            </div>
+          </form>
+        </div>
+
+        {/* Footer / Submit Button */}
+        <div className="p-5 bg-bg-primary border-t border-border-color/50">
           <button
             type="submit"
-            className="w-full py-3.5 bg-[#000000] dark:bg-[#2170e4] text-white font-semibold rounded-full hover:opacity-90 transition-all active:scale-95 shadow-md mt-2"
+            form="tx-form"
+            className={`w-full py-4 rounded-[20px] text-white text-[15px] font-bold shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2 ${
+              type === 'expense' 
+                ? 'bg-gradient-to-r from-[#ba1a1a] to-[#db3e3e] hover:shadow-[#ba1a1a]/30' 
+                : 'bg-gradient-to-r from-[#27AE60] to-[#2ecc71] hover:shadow-[#27AE60]/30'
+            }`}
           >
-            {initialData ? 'Update Transaction' : 'Save Transaction'}
+            <span className="material-symbols-outlined text-[20px]">
+              {initialData ? 'save' : 'add_task'}
+            </span>
+            <span>{initialData ? 'Simpan Perubahan' : 'Tambahkan Transaksi'}</span>
           </button>
-        </form>
+        </div>
       </div>
     </div>
   );
