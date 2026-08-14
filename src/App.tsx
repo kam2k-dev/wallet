@@ -27,11 +27,16 @@ interface ToastState {
 
 export default function App() {
   // Auth State
-  const [currentUser, setCurrentUser] = useState<User | null>({
-    id: 'mock-user-1',
-    name: 'Bypassed User',
-    phone: '6281234567890',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=bypassed'
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem('auth_user');
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   });
 
   const [currentTab, setCurrentTab] = useState<ViewTab>('dashboard'); // Default to Dashboard (home) screen
