@@ -104,19 +104,21 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
-      {/* Dimmed backdrop */}
+      {/* Soft Ambient Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-300"
+        className="absolute inset-0 bg-black/40 dark:bg-black/70 backdrop-blur-md transition-opacity duration-300"
         onClick={onClose}
       />
-      
-      {/* Modal Container */}
-      <div className="relative w-full max-w-lg bg-bg-secondary/95 backdrop-blur-2xl rounded-[32px] shadow-2xl border border-white/10 flex flex-col max-h-[92vh] overflow-hidden transition-all duration-300">
+
+      {/* Modal Container: Matching iOS / DompetKu Card Aesthetics */}
+      <div className="relative w-full max-w-md bg-bg-secondary/90 dark:bg-[#1a1c23]/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-border-color dark:border-white/10 flex flex-col max-h-[92vh] overflow-hidden transition-all duration-300">
         
-        {/* Sleek Minimalist Header */}
-        <div className="px-6 pt-5 pb-4 flex items-center justify-between border-b border-border-color/30">
+        {/* Header matching Dashboard aesthetic */}
+        <div className="px-6 py-4 flex items-center justify-between border-b border-border-color">
           <div className="flex items-center gap-2.5">
-            <span className={`w-2.5 h-2.5 rounded-full ${type === 'expense' ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+            <div className={`w-3 h-3 rounded-full ${
+              type === 'expense' ? 'bg-[#ba1a1a]' : 'bg-[#27AE60]'
+            }`} />
             <h2 className="text-[17px] font-bold text-text-primary tracking-tight">
               {initialData ? 'Edit Transaksi' : 'Tambah Transaksi'}
             </h2>
@@ -124,17 +126,17 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-bg-primary/80 hover:bg-bg-primary flex items-center justify-center text-text-secondary hover:text-text-primary transition-all active:scale-95"
+            className="w-8 h-8 rounded-full bg-bg-primary hover:bg-bg-tertiary flex items-center justify-center text-text-secondary hover:text-text-primary transition-all active:scale-95 border border-border-color"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
 
         {/* Content Area */}
-        <div className="p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1 space-y-5">
+        <div className="p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4">
           
-          {/* Segmented Type Switcher */}
-          <div className="bg-bg-primary p-1 rounded-2xl border border-border-color/40 grid grid-cols-2 gap-1 relative">
+          {/* Segmented Switcher matching BottomNav & Dashboard styling */}
+          <div className="bg-bg-primary p-1 rounded-2xl border border-border-color grid grid-cols-2 gap-1.5">
             <button
               type="button"
               onClick={() => {
@@ -143,12 +145,14 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               }}
               className={`py-2.5 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 ${
                 type === 'expense'
-                  ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20'
-                  : 'text-text-secondary hover:text-text-primary'
+                  ? 'bg-[#ba1a1a] text-white shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary/60'
               }`}
             >
-              <span className="material-symbols-outlined text-[16px]">arrow_downward</span>
-              Pengeluaran
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${type === 'expense' ? 'bg-white/20' : 'bg-[#ba1a1a]/10 text-[#ba1a1a]'}`}>
+                <span className="material-symbols-outlined text-[14px]">arrow_upward</span>
+              </div>
+              <span>Pengeluaran</span>
             </button>
 
             <button
@@ -159,24 +163,26 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               }}
               className={`py-2.5 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 ${
                 type === 'income'
-                  ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
-                  : 'text-text-secondary hover:text-text-primary'
+                  ? 'bg-[#27AE60] text-white shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary/60'
               }`}
             >
-              <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
-              Pemasukan
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${type === 'income' ? 'bg-white/20' : 'bg-[#27AE60]/10 text-[#27AE60]'}`}>
+                <span className="material-symbols-outlined text-[14px]">arrow_downward</span>
+              </div>
+              <span>Pemasukan</span>
             </button>
           </div>
 
-          <form id="tx-form" onSubmit={handleSubmit} className="space-y-5">
+          <form id="tx-form" onSubmit={handleSubmit} className="space-y-4">
             
-            {/* Hero Amount Input */}
-            <div className="bg-bg-primary/80 rounded-2xl p-4 sm:p-5 border border-border-color/40 text-center transition-all focus-within:border-border-color">
-              <span className="text-[11px] font-bold tracking-widest text-text-secondary uppercase block mb-1">
+            {/* Amount Card matching Dashboard's Total Balance card */}
+            <div className="bg-bg-primary p-4 rounded-2xl border border-border-color text-center space-y-1">
+              <span className="text-[12px] font-medium text-text-secondary block">
                 Nominal ({activeCur.symbol})
               </span>
               <div className="flex items-center justify-center gap-1">
-                <span className={`text-2xl font-bold ${type === 'expense' ? 'text-rose-500' : 'text-emerald-500'}`}>
+                <span className={`text-2xl font-bold ${type === 'expense' ? 'text-[#ba1a1a]' : 'text-[#27AE60]'}`}>
                   {type === 'expense' ? '-' : '+'}
                 </span>
                 <input
@@ -191,14 +197,14 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                       setAmount(rawValue);
                     }
                   }}
-                  className="w-full max-w-[280px] bg-transparent text-[36px] sm:text-[40px] font-extrabold text-text-primary text-center outline-none tracking-tight placeholder:text-text-secondary/20"
+                  className="w-full max-w-[260px] bg-transparent text-[32px] sm:text-[36px] font-bold text-text-primary text-center outline-none tracking-tight placeholder:text-text-secondary/30"
                 />
               </div>
             </div>
 
             {/* Title / Description */}
             <div className="space-y-1.5">
-              <label className="text-[12px] font-semibold text-text-secondary px-1">
+              <label className="text-[12px] font-medium text-text-secondary px-0.5">
                 Judul Transaksi
               </label>
               <input
@@ -207,16 +213,16 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 placeholder="Cth: Belanja Mingguan, Gaji Bulanan..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-3 bg-bg-primary rounded-xl text-[14px] font-medium text-text-primary outline-none border border-border-color/40 focus:border-[#2170e4] focus:ring-2 focus:ring-[#2170e4]/15 transition-all placeholder:text-text-secondary/40"
+                className="w-full px-3.5 py-2.5 bg-bg-primary rounded-xl text-[14px] font-normal text-text-primary outline-none border border-border-color focus:border-[#007aff] focus:ring-1 focus:ring-[#007aff] transition-all placeholder:text-text-secondary/40"
               />
             </div>
 
-            {/* Category Selector Grid */}
-            <div className="space-y-2">
-              <label className="text-[12px] font-semibold text-text-secondary px-1">
+            {/* Category Grid */}
+            <div className="space-y-1.5">
+              <label className="text-[12px] font-medium text-text-secondary px-0.5">
                 Kategori
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-44 overflow-y-auto p-1 custom-scrollbar">
+              <div className="grid grid-cols-2 gap-2 max-h-44 overflow-y-auto p-0.5 custom-scrollbar">
                 {filteredCategories.map((cat) => {
                   const isSelected = categoryId === cat.id;
                   return (
@@ -224,19 +230,19 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                       key={cat.id}
                       type="button"
                       onClick={() => setCategoryId(cat.id)}
-                      className={`p-2.5 rounded-xl text-left flex items-center gap-2.5 transition-all border ${
+                      className={`p-2.5 rounded-2xl text-left flex items-center gap-2.5 transition-all border ${
                         isSelected
-                          ? 'border-[#2170e4] bg-[#2170e4]/10 ring-1 ring-[#2170e4]/30'
-                          : 'border-border-color/30 bg-bg-primary text-text-secondary hover:bg-bg-primary/80 hover:text-text-primary'
+                          ? 'border-[#007aff] bg-[#007aff]/10 ring-1 ring-[#007aff]'
+                          : 'border-border-color bg-bg-primary text-text-secondary hover:text-text-primary hover:bg-bg-tertiary'
                       }`}
                     >
                       <span
-                        className="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm"
+                        className="w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm"
                         style={{ backgroundColor: cat.bgHex }}
                       >
-                        <span className="material-symbols-outlined text-[15px]">{cat.icon || 'category'}</span>
+                        <span className="material-symbols-outlined text-[17px]">{cat.icon || 'category'}</span>
                       </span>
-                      <span className={`text-[12px] font-medium truncate ${isSelected ? 'text-text-primary font-semibold' : ''}`}>
+                      <span className={`text-[13px] truncate ${isSelected ? 'text-text-primary font-semibold' : 'font-medium'}`}>
                         {cat.name}
                       </span>
                     </button>
@@ -246,11 +252,11 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             </div>
 
             {/* Payment Method & Date Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               
               {/* Payment Method */}
               <div className="space-y-1.5 relative">
-                <label className="text-[12px] font-semibold text-text-secondary px-1">
+                <label className="text-[12px] font-medium text-text-secondary px-0.5">
                   Metode Pembayaran
                 </label>
                 <button
@@ -258,8 +264,8 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                   onClick={() => setIsPaymentMenuOpen(!isPaymentMenuOpen)}
                   className={`w-full px-3.5 py-2.5 bg-bg-primary rounded-xl text-[13px] font-medium text-text-primary flex items-center justify-between border transition-all ${
                     isPaymentMenuOpen
-                      ? 'border-[#2170e4] ring-2 ring-[#2170e4]/15'
-                      : 'border-border-color/40 hover:border-border-color'
+                      ? 'border-[#007aff] ring-1 ring-[#007aff]'
+                      : 'border-border-color hover:border-text-secondary/40'
                   }`}
                 >
                   <span className="truncate">{paymentMethod}</span>
@@ -277,7 +283,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                       className="fixed inset-0 z-40"
                       onClick={() => setIsPaymentMenuOpen(false)}
                     />
-                    <div className="absolute left-0 right-0 bottom-[calc(100%+4px)] max-h-48 overflow-y-auto bg-bg-secondary/95 backdrop-blur-xl rounded-xl border border-border-color shadow-xl p-1 z-50 space-y-0.5 custom-scrollbar">
+                    <div className="absolute left-0 right-0 bottom-[calc(100%+6px)] max-h-48 overflow-y-auto bg-bg-secondary/95 backdrop-blur-xl rounded-2xl border border-border-color shadow-xl p-1 z-50 space-y-0.5 custom-scrollbar">
                       {PAYMENT_METHODS.map((pm) => {
                         const isSelected = paymentMethod === pm;
                         return (
@@ -288,15 +294,15 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                               setPaymentMethod(pm);
                               setIsPaymentMenuOpen(false);
                             }}
-                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-medium transition-colors ${
                               isSelected
-                                ? 'bg-[#2170e4]/10 text-[#2170e4] font-semibold'
+                                ? 'bg-[#007aff]/10 text-[#007aff] font-semibold'
                                 : 'text-text-primary hover:bg-bg-primary'
                             }`}
                           >
                             <span>{pm}</span>
                             {isSelected && (
-                              <span className="material-symbols-outlined text-[16px] text-[#2170e4]">check</span>
+                              <span className="material-symbols-outlined text-[16px] text-[#007aff]">check</span>
                             )}
                           </button>
                         );
@@ -308,21 +314,21 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
 
               {/* Date Input */}
               <div className="space-y-1.5">
-                <label className="text-[12px] font-semibold text-text-secondary px-1">
+                <label className="text-[12px] font-medium text-text-secondary px-0.5">
                   Tanggal
                 </label>
                 <input
                   type="date"
                   value={rawDate}
                   onChange={(e) => setRawDate(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-bg-primary rounded-xl text-[13px] font-medium text-text-primary outline-none border border-border-color/40 focus:border-[#2170e4] focus:ring-2 focus:ring-[#2170e4]/15 transition-all"
+                  className="w-full px-3.5 py-2.5 bg-bg-primary rounded-xl text-[13px] font-medium text-text-primary outline-none border border-border-color focus:border-[#007aff] focus:ring-1 focus:ring-[#007aff] transition-all"
                 />
               </div>
             </div>
 
             {/* Notes Input */}
             <div className="space-y-1.5">
-              <label className="text-[12px] font-semibold text-text-secondary px-1">
+              <label className="text-[12px] font-medium text-text-secondary px-0.5">
                 Catatan <span className="text-text-secondary/50 font-normal">(Opsional)</span>
               </label>
               <textarea
@@ -330,21 +336,21 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
-                className="w-full px-3.5 py-2.5 bg-bg-primary rounded-xl text-[13px] outline-none focus:ring-2 focus:ring-[#2170e4]/50 border border-transparent focus:border-[#2170e4] transition-all resize-none"
+                className="w-full px-3.5 py-2 bg-bg-primary rounded-xl text-[13px] text-text-primary outline-none focus:ring-1 focus:ring-[#007aff] border border-border-color focus:border-[#007aff] transition-all resize-none placeholder:text-text-secondary/40"
               />
             </div>
           </form>
         </div>
 
-        {/* Footer / Submit Button */}
-        <div className="p-4 sm:p-5 bg-bg-secondary border-t border-border-color/30">
+        {/* Footer / Submit Button matching app's main action button & liquid theme */}
+        <div className="p-4 sm:p-5 bg-bg-secondary border-t border-border-color">
           <button
             type="submit"
             form="tx-form"
-            className={`w-full py-3.5 rounded-xl text-white text-[14px] font-bold shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.99] ${
+            className={`w-full py-3 rounded-2xl text-white text-[14px] font-bold shadow-md transition-all flex items-center justify-center gap-2 active:scale-[0.98] ${
               type === 'expense'
-                ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/25'
-                : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/25'
+                ? 'bg-[#ba1a1a] hover:bg-[#a01616]'
+                : 'bg-[#27AE60] hover:bg-[#219653]'
             }`}
           >
             <span className="material-symbols-outlined text-[18px]">

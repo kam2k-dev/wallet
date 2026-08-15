@@ -7,12 +7,14 @@ interface LoginPageProps {
   onLoginSuccess: (user: User, token: string) => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
+  onBypassLogin?: () => void;
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({
   onLoginSuccess,
   isDarkMode,
   onToggleDarkMode,
+  onBypassLogin,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,22 +80,35 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           </div>
         )}
 
-        <div className="flex justify-center py-2">
+        <div className="flex flex-col items-center gap-3 py-2">
           {isLoading ? (
             <div className="flex items-center gap-2 text-sm text-text-secondary">
               <span className="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
               <span>Memproses Login...</span>
             </div>
           ) : (
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
-              theme={isDarkMode ? 'filled_black' : 'outline'}
-              shape="pill"
-              size="large"
-              width="280"
-              text="signin_with"
-            />
+            <>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme={isDarkMode ? 'filled_black' : 'outline'}
+                shape="pill"
+                size="large"
+                width="280"
+                text="signin_with"
+              />
+
+              {onBypassLogin && (
+                <button
+                  type="button"
+                  onClick={onBypassLogin}
+                  className="w-[280px] py-2.5 px-4 rounded-full border border-dashed border-border-color hover:border-[#2170e4] hover:bg-[#2170e4]/5 text-xs font-medium text-text-secondary hover:text-[#2170e4] transition-all flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[16px]">visibility</span>
+                  Masuk sebagai Tamu (Bypass Login)
+                </button>
+              )}
+            </>
           )}
         </div>
 

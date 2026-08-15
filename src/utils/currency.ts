@@ -21,14 +21,38 @@ export const getCurrency = (code: CurrencyCode): CurrencyOption =>
 
 /**
  * Format a numeric amount into the selected currency display.
- * Negative amounts get a leading "-".
+ * - Menghilangkan desimal ,00
+ * - Untuk nominal besar (>= 1.000.000 / jutaan), diringkas contoh:
+ *   - 10.450.000 -> Rp10.450k (atau 10jt jika pas kelipatan juta/10jt)
  */
-export const formatCurrency = (amount: number, code: CurrencyCode): string => {
+export const formatCurrency = (amount: number, code: CurrencyCode = 'IDR'): string => {
   const cur = getCurrency(code);
   const abs = Math.abs(amount);
+  const sign = amount < 0 ? '-' : '';
+
+  // Khusus format Rupiah (IDR) atau format ringkas
+  if (code === 'IDR') {
+    if (abs >= 1_000_000) {
+      // Jika kelipatan tepat 1 juta (cth 10.000.000 -> 10 jt, 1.000.000 -> 1 jt)
+      if (abs % 1_000_000 === 0) {
+        return `${sign}Rp${abs / 1_000_000} jt`;
+      }
+      // Jika ribuan (cth 10.450.000 -> 10.450k)
+      const inThousands = Math.round(abs / 1000);
+      return `${sign}Rp${inThousands.toLocaleString('id-ID')}k`;
+    }
+
+    // Nominal di bawah 1 juta (cth: 25.000, 200.000) tanpa desimal ,00
+    const formatted = Math.round(abs).toLocaleString('id-ID');
+    return `${sign}Rp${formatted}`;
+  }
+
+  // Untuk mata uang lainnya (USD, EUR, dll) tanpa desimal jika bulat
+  const hasDecimals = abs % 1 !== 0;
   const formatted = abs.toLocaleString(cur.locale, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: hasDecimals ? 2 : 0,
   });
-  return amount < 0 ? `-${cur.symbol}${formatted}` : `${cur.symbol}${formatted}`;
+
+  return `${sign}${cur.symbol}${formatted}`;
 };

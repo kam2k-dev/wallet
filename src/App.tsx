@@ -350,11 +350,24 @@ export default function App() {
     }
   };
 
+  // Default Guest User for bypass
+  const handleBypassLogin = () => {
+    const guestUser: User = {
+      id: 'guest-user',
+      email: 'guest@dompetku.local',
+      name: 'Pengguna Tamu',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      createdAt: new Date().toISOString(),
+    };
+    handleLoginSuccess(guestUser, 'guest-token-bypass');
+  };
+
   // If user is not logged in, render the Google Login Page
   if (!currentUser) {
     return (
       <LoginPage
         onLoginSuccess={handleLoginSuccess}
+        onBypassLogin={handleBypassLogin}
         isDarkMode={isDarkMode}
         onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
       />
@@ -362,120 +375,194 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-primary text-text-primary relative selection:bg-[#2170e4]/20">
-      {/* Modern Floating Toast Notification */}
-      {toast && (
-        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%] pointer-events-none animate-in fade-in slide-in-from-top-4 duration-200">
-          <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl backdrop-blur-md border pointer-events-auto ${
-              toast.type === 'success'
-                ? 'bg-[#27AE60]/95 text-white border-[#27AE60]/30 shadow-[#27AE60]/20'
-                : toast.type === 'delete'
-                ? 'bg-[#ba1a1a]/95 text-white border-[#ba1a1a]/30 shadow-[#ba1a1a]/20'
-                : toast.type === 'error'
-                ? 'bg-[#ba1a1a]/95 text-white border-[#ba1a1a]/30 shadow-[#ba1a1a]/20'
-                : 'bg-[#0058be]/95 text-white border-[#0058be]/30 shadow-[#0058be]/20'
-            }`}
-          >
-            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[18px]">
-                {toast.type === 'success'
-                  ? 'check_circle'
-                  : toast.type === 'delete'
-                  ? 'delete'
-                  : toast.type === 'error'
-                  ? 'error'
-                  : 'info'}
-              </span>
-            </div>
-            <p className="text-[13px] font-medium leading-tight flex-1">{toast.message}</p>
+    <div className="min-h-screen bg-bg-primary text-text-primary relative selection:bg-[#2170e4]/20 flex flex-col md:flex-row">
+      {/* 6. Sidebar Navigation for Tablet & Desktop Layout */}
+      <aside className="hidden md:flex flex-col w-64 bg-bg-secondary border-r border-border-color sticky top-0 h-screen shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-30">
+        <div className="p-6 pb-4 border-b border-border-color/50 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#2170e4] to-[#0051a8] flex items-center justify-center text-white shadow-lg shadow-[#2170e4]/25">
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fill="currentColor" d="M27 8H7a1 1 0 0 1 0-2h17a1 1 0 1 0 0-2H7a3 3 0 0 0-3 3v16a3 3 0 0 0 3 3h20a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2m-4.5 10a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="font-extrabold text-[18px] tracking-tight text-text-primary leading-tight">DompetKu</h1>
+            <p className="text-[11px] font-semibold text-text-secondary">Smart Finance</p>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto py-6 px-4 space-y-2 custom-scrollbar">
+          {[
+            { id: 'dashboard' as ViewTab, label: 'Dashboard', icon: 'dashboard' },
+            { id: 'wallet' as ViewTab, label: 'Kategori Wallet', icon: 'account_balance_wallet' },
+            { id: 'analysis' as ViewTab, label: 'Analisis & Laporan', icon: 'pie_chart' },
+          ].map((tab) => (
             <button
-              onClick={() => setToast(null)}
-              className="w-6 h-6 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors shrink-0"
+              key={tab.id}
+              onClick={() => setCurrentTab(tab.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 text-left font-semibold text-[14px] ${
+                currentTab === tab.id
+                  ? 'bg-[#2170e4]/10 text-[#2170e4] shadow-sm'
+                  : 'text-text-secondary hover:bg-bg-tertiary hover:text-text-primary'
+              }`}
             >
-              <span className="material-symbols-outlined text-[16px]">close</span>
+              <span className={`material-symbols-outlined text-[20px] ${currentTab === tab.id ? 'fill-1' : ''}`}>{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+          
+          <div className="pt-4 mt-2 border-t border-border-color/50">
+            <button
+              onClick={() => {
+                setEditingTransaction(null);
+                setIsAddModalOpen(true);
+              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl font-bold text-[14px] text-white bg-gradient-to-r from-[#2170e4] to-[#0051a8] hover:shadow-lg hover:shadow-[#2170e4]/30 hover:scale-[1.02] active:scale-95 transition-all"
+            >
+              <span className="material-symbols-outlined text-[18px]">add_circle</span>
+              Tambah Transaksi
             </button>
           </div>
         </div>
-      )}
 
-      {/* Top Header */}
-      <Header
-        currentTab={currentTab}
-        categoryTitle={selectedCategory.name}
-        onBack={handleBackHeader}
-        user={currentUser}
-        onProfileClick={() => setCurrentTab('profile')}
-      />
+        <div className="p-4 border-t border-border-color/50">
+          <button
+            onClick={() => setCurrentTab('profile')}
+            className={`w-full flex items-center gap-3 p-2.5 rounded-2xl transition-all duration-200 text-left ${
+              currentTab === 'profile' ? 'bg-[#2170e4]/10 border border-[#2170e4]/20' : 'hover:bg-bg-tertiary border border-transparent'
+            }`}
+          >
+            <img src={currentUser.avatar} alt="Profile" className="w-9 h-9 rounded-xl object-cover shadow-sm" />
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-[13px] text-text-primary truncate">{currentUser.name}</p>
+              <p className="text-[11px] font-medium text-text-secondary truncate">{currentUser.email}</p>
+            </div>
+            <span className="material-symbols-outlined text-[18px] text-text-secondary">chevron_right</span>
+          </button>
+        </div>
+      </aside>
 
-      {/* Main View Area */}
-      {currentTab === 'dashboard' && (
-        <DashboardView
-          categories={categories}
-          transactions={transactions}
-          totalBalance={totalBalance}
-          totalIncome={totalIncome}
-          totalExpense={totalExpense}
-          currency={currency}
-          onSelectCategory={handleSelectCategory}
-          onSelectTransaction={setSelectedTransaction}
-          onSeeAllTransactions={() => setCurrentTab('analysis')}
-          onAddCategory={() => setIsAddCategoryModalOpen(true)}
-          onDeleteCategory={handleDeleteCategory}
-          onEditCategory={handleEditCategory}
-        />
-      )}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-h-screen relative w-full overflow-x-hidden md:max-w-4xl lg:max-w-5xl mx-auto">
+        {/* Modern Floating Toast Notification */}
+        {toast && (
+          <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-sm w-[90%] pointer-events-none animate-in fade-in slide-in-from-top-4 duration-200">
+            <div
+              className={`flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl backdrop-blur-md border pointer-events-auto ${
+                toast.type === 'success'
+                  ? 'bg-[#27AE60]/95 text-white border-[#27AE60]/30 shadow-[#27AE60]/20'
+                  : toast.type === 'delete'
+                  ? 'bg-[#ba1a1a]/95 text-white border-[#ba1a1a]/30 shadow-[#ba1a1a]/20'
+                  : toast.type === 'error'
+                  ? 'bg-[#ba1a1a]/95 text-white border-[#ba1a1a]/30 shadow-[#ba1a1a]/20'
+                  : 'bg-[#0058be]/95 text-white border-[#0058be]/30 shadow-[#0058be]/20'
+              }`}
+            >
+              <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[18px]">
+                  {toast.type === 'success'
+                    ? 'check_circle'
+                    : toast.type === 'delete'
+                    ? 'delete'
+                    : toast.type === 'error'
+                    ? 'error'
+                    : 'info'}
+                </span>
+              </div>
+              <p className="text-[13px] font-medium leading-tight flex-1">{toast.message}</p>
+              <button
+                onClick={() => setToast(null)}
+                className="w-6 h-6 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors shrink-0"
+              >
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            </div>
+          </div>
+        )}
 
-      {currentTab === 'analysis' && (
-        <SpendAnalysisView
-          categories={categories}
-          transactions={transactions}
-          totalSpending={totalSpending}
-          currency={currency}
-          onSelectCategory={handleSelectCategory}
-          onSelectTransaction={setSelectedTransaction}
-        />
-      )}
+        {/* Top Header - Mobile Only */}
+        <div className="md:hidden">
+          <Header
+            currentTab={currentTab}
+            categoryTitle={selectedCategory.name}
+            onBack={handleBackHeader}
+            user={currentUser}
+            onProfileClick={() => setCurrentTab('profile')}
+          />
+        </div>
 
-      {currentTab === 'wallet' && (
-        <WalletDetailsView
-          category={selectedCategory}
-          categories={categories}
-          transactions={transactions}
-          currency={currency}
-          onSelectCategory={setSelectedCategoryId}
-          onOpenAddModal={() => {
-            setEditingTransaction(null);
-            setIsAddModalOpen(true);
-          }}
-          onSelectTransaction={setSelectedTransaction}
-          onQuickAction={(actionName) => showToast(`Action: ${actionName}`)}
-        />
-      )}
+        {/* Main View Area */}
+        <div className="flex-1 overflow-y-auto">
+          {currentTab === 'dashboard' && (
+            <DashboardView
+              categories={categories}
+              transactions={transactions}
+              totalBalance={totalBalance}
+              totalIncome={totalIncome}
+              totalExpense={totalExpense}
+              currency={currency}
+              onSelectCategory={handleSelectCategory}
+              onSelectTransaction={setSelectedTransaction}
+              onSeeAllTransactions={() => setCurrentTab('analysis')}
+              onAddCategory={() => setIsAddCategoryModalOpen(true)}
+              onDeleteCategory={handleDeleteCategory}
+              onEditCategory={handleEditCategory}
+            />
+          )}
 
-      {currentTab === 'profile' && (
-        <ProfileView 
-          user={currentUser}
-          onLogout={handleLogout}
-          currency={currency} 
-          onCurrencyChange={handleCurrencyChange} 
-          rates={rates} 
-          isDarkMode={isDarkMode}
-          onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
-          onExportCSV={handleExportCSV}
-          onExportJSON={handleExportJSON}
-        />
-      )}
+          {currentTab === 'analysis' && (
+            <SpendAnalysisView
+              categories={categories}
+              transactions={transactions}
+              totalSpending={totalSpending}
+              currency={currency}
+              onSelectCategory={handleSelectCategory}
+              onSelectTransaction={setSelectedTransaction}
+            />
+          )}
 
-      {/* Bottom Floating Navigation Bar */}
-      <BottomNav
-        currentTab={currentTab}
-        onTabChange={setCurrentTab}
-        onOpenAddModal={() => {
-          setEditingTransaction(null);
-          setIsAddModalOpen(true);
-        }}
-      />
+          {currentTab === 'wallet' && (
+            <WalletDetailsView
+              category={selectedCategory}
+              categories={categories}
+              transactions={transactions}
+              currency={currency}
+              onSelectCategory={setSelectedCategoryId}
+              onOpenAddModal={() => {
+                setEditingTransaction(null);
+                setIsAddModalOpen(true);
+              }}
+              onSelectTransaction={setSelectedTransaction}
+              onQuickAction={(actionName) => showToast(`Action: ${actionName}`)}
+            />
+          )}
+
+          {currentTab === 'profile' && (
+            <ProfileView 
+              user={currentUser}
+              onLogout={handleLogout}
+              currency={currency} 
+              onCurrencyChange={handleCurrencyChange} 
+              rates={rates} 
+              isDarkMode={isDarkMode}
+              onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+              onExportCSV={handleExportCSV}
+              onExportJSON={handleExportJSON}
+            />
+          )}
+        </div>
+
+        {/* Bottom Floating Navigation Bar - Mobile Only */}
+        <div className="md:hidden">
+          <BottomNav
+            currentTab={currentTab}
+            onTabChange={setCurrentTab}
+            onOpenAddModal={() => {
+              setEditingTransaction(null);
+              setIsAddModalOpen(true);
+            }}
+          />
+        </div>
+      </div>
 
       {/* Add / Edit Transaction Modal */}
       <AddTransactionModal
@@ -505,10 +592,14 @@ export default function App() {
         categories={categories}
         currency={currency}
         onClose={() => setSelectedTransaction(null)}
-        onDelete={handleDeleteTransaction}
         onEdit={(tx) => {
+          setSelectedTransaction(null);
           setEditingTransaction(tx);
           setIsAddModalOpen(true);
+        }}
+        onDelete={(id) => {
+          handleDeleteTransaction(id);
+          setSelectedTransaction(null);
         }}
       />
     </div>

@@ -90,66 +90,96 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     ? categories 
     : categories.filter(cat => !hiddenCategories.has(cat.id));
 
+  // Group transactions by Relative Date (Today, Yesterday, Older)
+  const groupedTransactions = React.useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    const groups: { [key: string]: Transaction[] } = {};
+
+    latestTransactions.forEach((tx) => {
+      let groupName = 'Riwayat Sebelumnya';
+      if (tx.rawDate === todayStr) {
+        groupName = 'Hari Ini';
+      } else if (tx.rawDate === yesterdayStr) {
+        groupName = 'Kemarin';
+      } else if (tx.date) {
+        groupName = tx.date;
+      }
+
+      if (!groups[groupName]) {
+        groups[groupName] = [];
+      }
+      groups[groupName].push(tx);
+    });
+
+    return groups;
+  }, [latestTransactions]);
+
   return (
-    <main className="px-5 space-y-5 pt-2 pb-28 max-w-md mx-auto">
-      {/* Main Balance Section */}
-      <section className="bg-bg-secondary p-5 rounded-3xl border border-border-color shadow-sm space-y-3">
+    <main className="px-5 space-y-6 pt-2 pb-28 max-w-md mx-auto">
+      {/* Clean Swiss-Finance Minimalist Hero Card */}
+      <section className="bg-bg-secondary p-5 sm:p-6 rounded-3xl border border-border-color shadow-xs transition-all space-y-5">
+        
+        {/* Top bar: Label & Toggle */}
         <div className="flex items-center justify-between">
-          <p className="text-text-secondary text-[13px] font-medium">Total Balance</p>
+          <span className="text-[13px] font-medium text-text-secondary">
+            Total Saldo
+          </span>
           <button
             onClick={() => setShowBalance(!showBalance)}
-            className="text-text-secondary hover:text-text-primary p-1 transition-colors"
-            title="Toggle balance visibility"
+            className="text-text-secondary hover:text-text-primary p-1 -mr-1 transition-colors rounded-lg"
+            title="Sembunyikan / Tampilkan Saldo"
           >
             <span className="material-symbols-outlined text-[20px]">
               {showBalance ? 'visibility' : 'visibility_off'}
             </span>
           </button>
         </div>
-        <div className="flex items-baseline gap-2">
-          <h1 className="font-bold text-[28px] leading-[34px] text-text-primary tracking-tight">
-            {showBalance ? formatCurrency(totalBalance, currency) : '••••••••'}
+
+        {/* Hero Amount */}
+        <div>
+          <h1 className="font-bold text-[32px] sm:text-[36px] text-text-primary tracking-tight leading-none">
+            {showBalance ? formatCurrency(totalBalance, currency) : '••••••••••••'}
           </h1>
         </div>
 
-        {/* Income & Expense Summary Pills */}
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border-color">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-[#27AE60]/10 text-[#27AE60] flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[16px]">arrow_downward</span>
+        {/* Crisp Income & Expense Columns */}
+        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border-color">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-text-secondary text-[12px] font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#27AE60]" />
+              <span>Pemasukan</span>
             </div>
-            <div className="min-w-0">
-              <p className="text-[11px] text-text-secondary">Income</p>
-              <p className="text-[13px] font-bold text-[#27AE60] truncate">
-                {showBalance ? formatCurrency(totalIncome, currency) : '••••'}
-              </p>
-            </div>
+            <p className="text-[15px] font-semibold text-[#27AE60] tracking-tight truncate">
+              {showBalance ? formatCurrency(totalIncome, currency) : '••••'}
+            </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-[#ba1a1a]/10 text-[#ba1a1a] flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-text-secondary text-[12px] font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#ba1a1a]" />
+              <span>Pengeluaran</span>
             </div>
-            <div className="min-w-0">
-              <p className="text-[11px] text-text-secondary">Expense</p>
-              <p className="text-[13px] font-bold text-[#ba1a1a] truncate">
-                {showBalance ? formatCurrency(totalExpense, currency) : '••••'}
-              </p>
-            </div>
+            <p className="text-[15px] font-semibold text-[#ba1a1a] tracking-tight truncate">
+              {showBalance ? formatCurrency(totalExpense, currency) : '••••'}
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Category Cards Grid */}
+      {/* Category Cards Grid - Clean Minimalist Surface Cards */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-[16px] leading-[24px] text-text-primary">Categories</h2>
+          <h2 className="font-bold text-[17px] text-text-primary">Kategori Anggaran</h2>
           <div className="flex items-center gap-1">
             {onAddCategory && (
               <button
                 onClick={onAddCategory}
                 title="Add Category"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:text-primary hover:bg-primary/10 transition-colors"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:text-[#007aff] hover:bg-bg-tertiary transition-colors"
               >
                 <span className="material-symbols-outlined text-[20px]">add_circle</span>
               </button>
@@ -159,8 +189,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               title={isEditMode ? 'Done' : 'Edit Categories'}
               className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                 isEditMode
-                  ? 'bg-black/50 dark:bg-white/50 text-white dark:text-black grayscale'
-                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary'
+                  ? 'bg-text-primary text-bg-primary'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary'
               }`}
             >
               <span className="material-symbols-outlined text-[18px]">
@@ -170,11 +200,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-3">
           {visibleCategories.map((cat) => {
             const isHidden = hiddenCategories.has(cat.id);
-            const budgetPct = cat.budget && cat.budget > 0 ? Math.min(100, Math.round((cat.amount / cat.budget) * 100)) : null;
-            const isOverBudget = cat.budget && cat.budget > 0 && cat.amount > cat.budget;
+            const budgetLimit = cat.budget || 1000000;
+            const budgetPct = Math.min(100, Math.round((cat.amount / budgetLimit) * 100));
 
             return (
               <div
@@ -211,114 +241,132 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   const timer = (e.target as any).dataset.timer;
                   if (timer) clearTimeout(parseInt(timer));
                 }}
-                className={`p-3 rounded-2xl text-white flex flex-col justify-between h-[100px] transition-all shadow-sm overflow-hidden relative group ${
-                  !isEditMode ? 'cursor-pointer active-scale hover:shadow-md' : 'cursor-default'
-                } ${isEditMode && isHidden ? 'opacity-50 grayscale' : ''}`}
-                style={{ backgroundColor: cat.bgHex }}
+                className={`p-3.5 rounded-2xl bg-bg-secondary border border-border-color flex flex-col justify-between h-[108px] transition-all shadow-xs relative group ${
+                  !isEditMode ? 'cursor-pointer hover:border-[#007aff]/40 hover:shadow-sm active:scale-[0.98]' : 'cursor-default'
+                } ${isEditMode && isHidden ? 'opacity-40 grayscale' : ''}`}
               >
-                <div className="absolute top-0 right-0 p-2.5 flex items-center gap-1.5">
-                  {isEditMode && (
+                <div className="flex items-center justify-between">
+                  <div
+                    className="w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs"
+                    style={{ backgroundColor: cat.bgHex }}
+                  >
+                    <span className="material-symbols-outlined text-[17px]">{cat.icon}</span>
+                  </div>
+                  {isEditMode ? (
                     <button
                       onClick={(e) => toggleCategoryVisibility(cat.id, e)}
-                      className="w-7 h-7 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center hover:bg-black/40 transition-colors"
+                      className="w-7 h-7 rounded-full bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors"
                     >
-                      <span className="material-symbols-outlined text-[16px]">
+                      <span className="material-symbols-outlined text-[15px]">
                         {isHidden ? 'visibility_off' : 'visibility'}
                       </span>
                     </button>
-                  )}
-                  {!isEditMode && (
-                    <span className="material-symbols-outlined text-[18px] opacity-90">{cat.icon}</span>
+                  ) : (
+                    <span className="text-[11px] font-semibold text-text-secondary/70">
+                      {budgetPct}%
+                    </span>
                   )}
                 </div>
-                <div className="mt-auto">
-                  <p className="text-[11px] font-medium opacity-90 truncate">{cat.name}</p>
-                  <p className="font-semibold text-[14px] leading-[20px] truncate">
+
+                <div className="space-y-1 mt-auto">
+                  <div className="flex items-baseline justify-between gap-1">
+                    <p className="text-[12px] font-medium text-text-secondary truncate">{cat.name}</p>
+                  </div>
+                  <p className="font-bold text-[14px] text-text-primary tracking-tight truncate leading-tight">
                     {formatCurrency(cat.amount, currency)}
                   </p>
-                  {budgetPct !== null && (
-                    <div className="mt-1">
-                      <div className="w-full bg-black/20 h-1 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${isOverBudget ? 'bg-red-400' : 'bg-white/80'}`}
-                          style={{ width: `${budgetPct}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                  
+                  {/* Subtle Clean Budget Bar */}
+                  <div className="w-full bg-bg-tertiary h-1 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${budgetPct}%`,
+                        backgroundColor: cat.bgHex
+                      }}
+                    />
+                  </div>
                 </div>
-                {!isEditMode && (
-                  <div className="absolute inset-0 bg-bg-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                )}
               </div>
             );
           })}
         </div>
       </section>
 
-      {/* Latest Transactions */}
+      {/* 5. Grouped Timeline Latest Transactions */}
       <section className="space-y-3 pb-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-[16px] leading-[24px] text-text-primary">Latest transaction</h2>
+          <h2 className="font-bold text-[17px] text-text-primary">Transaksi Terkini</h2>
           <button
             onClick={onSeeAllTransactions}
-            title="See all transactions"
-            className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:text-primary hover:bg-primary/10 transition-colors"
+            title="Lihat semua transaksi"
+            className="text-xs font-semibold text-[#007aff] hover:underline flex items-center gap-0.5"
           >
-            <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+            <span>Semua</span>
+            <span className="material-symbols-outlined text-[16px]">chevron_right</span>
           </button>
         </div>
 
-        <div className="space-y-2.5">
+        <div className="space-y-4">
           {latestTransactions.length === 0 ? (
             <div className="text-center py-8 text-text-secondary text-[13px] bg-bg-secondary rounded-2xl border border-border-color">
-              No transactions yet. Tap + to add one!
+              Belum ada transaksi. Ketuk + untuk menambahkan!
             </div>
           ) : (
-            latestTransactions.map((tx) => {
-              const cat = categories.find((c) => c.id === tx.categoryId);
-              return (
-                <div
-                  key={tx.id}
-                  onClick={() => onSelectTransaction(tx)}
-                  className="flex items-center gap-3.5 bg-bg-secondary p-3 rounded-2xl shadow-sm border border-border-color active-scale transition-all cursor-pointer hover:shadow-md"
-                >
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-[#e9edff] dark:bg-black/20 flex items-center justify-center shrink-0">
-                    {tx.iconUrl ? (
-                      <img
-                        src={tx.iconUrl}
-                        alt={tx.title}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <span className="material-symbols-outlined text-[20px] text-[#0058be]">
-                        {cat?.icon || 'receipt'}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex-grow min-w-0">
-                    <p className="text-[13px] font-semibold text-text-primary truncate">{tx.title}</p>
-                    <p className="text-[11px] text-text-secondary truncate">
-                      {tx.date} • {tx.paymentMethod}
-                    </p>
-                  </div>
-
-                  <div className="text-right shrink-0">
-                    <p
-                      className={`text-[13px] font-bold ${
-                        tx.amount < 0 ? 'text-[#ba1a1a]' : 'text-[#27AE60]'
-                      }`}
-                    >
-                      {formatAmount(tx.amount)}
-                    </p>
-                  </div>
+            Object.entries(groupedTransactions).map(([dateLabel, items]) => (
+              <div key={dateLabel} className="space-y-2">
+                <div className="flex items-center gap-2 px-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#007aff]" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                    {dateLabel}
+                  </span>
                 </div>
-              );
-            })
+
+                <div className="space-y-2">
+                  {items.map((tx) => {
+                    const cat = categories.find((c) => c.id === tx.categoryId);
+                    return (
+                      <div
+                        key={tx.id}
+                        onClick={() => onSelectTransaction(tx)}
+                        className="flex items-center gap-3.5 bg-bg-secondary p-3 rounded-2xl shadow-sm border border-border-color transition-all duration-200 cursor-pointer hover:shadow-md hover:border-[#007aff]/30 active:scale-[0.99]"
+                      >
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm"
+                          style={{ backgroundColor: cat?.bgHex || '#007aff' }}
+                        >
+                          <span className="material-symbols-outlined text-[19px]">
+                            {cat?.icon || 'receipt'}
+                          </span>
+                        </div>
+
+                        <div className="flex-grow min-w-0">
+                          <p className="text-[13px] font-bold text-text-primary truncate">{tx.title}</p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] font-semibold px-2 py-0.5 bg-bg-tertiary rounded-md text-text-secondary">
+                              {tx.paymentMethod}
+                            </span>
+                            <span className="text-[11px] text-text-secondary truncate">
+                              {cat?.name}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <p
+                            className={`text-[14px] font-black ${
+                              tx.amount < 0 ? 'text-[#ba1a1a]' : 'text-[#27AE60]'
+                            }`}
+                          >
+                            {formatAmount(tx.amount)}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
           )}
         </div>
       </section>
