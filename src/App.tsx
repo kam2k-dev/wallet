@@ -283,17 +283,15 @@ export default function App() {
   };
 
   const handleEditCategory = async (updatedCat: Category) => {
-    // Persist to backend (dummy JSON in dev, PostgreSQL in prod)
+    const updatedCats = categories.map((cat) => (cat.id === updatedCat.id ? updatedCat : cat));
+    setCategories(updatedCats);
+
+    // Persist to backend
     try {
-      // In a real app we'd have api.updateCategory(updatedCat)
-      // await api.updateCategory(updatedCat);
+      await api.updateCategories(updatedCats);
     } catch (err) {
       console.warn('Failed to update category to API:', err);
     }
-
-    setCategories((prevCats) =>
-      prevCats.map((cat) => (cat.id === updatedCat.id ? updatedCat : cat))
-    );
 
     showToast(`Category "${updatedCat.name}" updated!`, 'success');
   };
