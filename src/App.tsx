@@ -350,24 +350,11 @@ export default function App() {
     }
   };
 
-  // Default Guest User for bypass
-  const handleBypassLogin = () => {
-    const guestUser: User = {
-      id: 'guest-user',
-      email: 'guest@dompetku.local',
-      name: 'Pengguna Tamu',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      createdAt: new Date().toISOString(),
-    };
-    handleLoginSuccess(guestUser, 'guest-token-bypass');
-  };
-
   // If user is not logged in, render the Google Login Page
   if (!currentUser) {
     return (
       <LoginPage
         onLoginSuccess={handleLoginSuccess}
-        onBypassLogin={handleBypassLogin}
         isDarkMode={isDarkMode}
         onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
       />
