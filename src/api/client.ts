@@ -30,6 +30,18 @@ export const api = {
     });
   },
 
+  // ─── Dev Bypass Login (Dev Mode Only) ───────────────────────────────
+  async devLogin(): Promise<{
+    success: boolean;
+    user?: User;
+    token?: string;
+    error?: string;
+  }> {
+    return request<{ success: boolean; user?: User; token?: string; error?: string }>('/api/auth/dev-login', {
+      method: 'POST',
+    });
+  },
+
   // ─── Data Endpoints ─────────────────────────────────────────────────────
   async getTransactions(): Promise<Transaction[]> {
     return request<Transaction[]>('/api/transactions');

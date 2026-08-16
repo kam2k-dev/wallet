@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LayoutGrid, List, ChevronUp, ChevronDown } from 'lucide-react';
 import { Category, Transaction, CategoryId } from '../types';
 import { CurrencyCode, formatCurrency } from '../utils/currency';
 import { EditCategoryModal } from './EditCategoryModal';
@@ -34,6 +35,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const [showBalance, setShowBalance] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    return (localStorage.getItem('categoryViewMode') as 'grid' | 'list') || 'grid';
+  });
+  const [categoryOrder, setCategoryOrder] = useState<string[]>(() => {
+    const saved = localStorage.getItem('categoryOrder');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [hiddenCategories, setHiddenCategories] = useState<Set<CategoryId>>(() => {
     const saved = localStorage.getItem('hiddenCategories');
     // Default hidden categories for new users
@@ -70,6 +78,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     });
   };
 
+  const handleToggleViewMode = (mode: 'grid' | 'list') => {
+    setViewMode(mode);
+    localStorage.setItem('categoryViewMode', mode);
+  };
+
+  const moveCategory = (id: string, direction: 'up' | 'down', e: React.MouseEvent) => {
+    e.stopPropagation();
+    const currentOrder = visibleCategories.map(c => c.id);
+    const index = currentOrder.indexOf(id as CategoryId);
+    if (index === -1) return;
+
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= currentOrder.length) return;
+
+    const newOrder = [...currentOrder];
+    const temp = newOrder[index];
+    newOrder[index] = newOrder[targetIndex];
+    newOrder[targetIndex] = temp;
+
+    setCategoryOrder(newOrder);
+    localStorage.setItem('categoryOrder', JSON.stringify(newOrder));
+  };
+
   // Close context menu when clicking outside
   React.useEffect(() => {
     const handleClickOutside = () => setContextMenuState({ ...contextMenuState, visible: false });
@@ -86,9 +117,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const formatAmount = (num: number) => formatCurrency(num, currency);
 
-  const visibleCategories = isEditMode 
+  const baseCategories = isEditMode 
     ? categories 
     : categories.filter(cat => !hiddenCategories.has(cat.id));
+
+  // Order categories based on user custom order
+  const visibleCategories = React.useMemo(() => {
+    let list = [...baseCategories];
+
+    if (categoryOrder.length > 0) {
+      list.sort((a, b) => {
+        const indexA = categoryOrder.indexOf(a.id);
+        const indexB = categoryOrder.indexOf(b.id);
+        if (indexA === -1 && indexB === -1) return 0;
+        if (indexA === -1) return 1;
+        if (indexB === -1) return -1;
+        return indexA - indexB;
+      });
+    }
+
+    return list;
+  }, [baseCategories, categoryOrder]);
 
   // Group transactions by Relative Date (Today, Yesterday, Older)
   const groupedTransactions = React.useMemo(() => {
@@ -170,11 +219,39 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </section>
 
-      {/* Category Cards Grid - Clean Minimalist Surface Cards */}
+      {/* Category Section - Minimalist Surface Cards / List */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-bold text-[17px] text-text-primary">Kategori Anggaran</h2>
-          <div className="flex items-center gap-1">
+          <h2 className="font-bold text-[17px] text-text-primary">Kategori</h2>
+          <div className="flex items-center gap-1.5">
+            {/* View Mode Toggle (Grid / List) - Only displayed during Edit Mode */}
+            {isEditMode && (
+              <div className="flex items-center bg-bg-secondary border border-border-color rounded-xl p-0.5 animate-fadeIn">
+                <button
+                  onClick={() => handleToggleViewMode('grid')}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    viewMode === 'grid'
+                      ? 'bg-bg-primary text-text-primary shadow-xs'
+                      : 'text-text-secondary hover:text-text-primary'
+                  }`}
+                  title="Tampilan Grid"
+                >
+                  <LayoutGrid size={15} />
+                </button>
+                <button
+                  onClick={() => handleToggleViewMode('list')}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    viewMode === 'list'
+                      ? 'bg-bg-primary text-text-primary shadow-xs'
+                      : 'text-text-secondary hover:text-text-primary'
+                  }`}
+                  title="Tampilan List"
+                >
+                  <List size={15} />
+                </button>
+              </div>
+            )}
+
             {onAddCategory && (
               <button
                 onClick={onAddCategory}
@@ -200,97 +277,190 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          {visibleCategories.map((cat) => {
-            const isHidden = hiddenCategories.has(cat.id);
-            const budgetLimit = cat.budget || 1000000;
-            const budgetPct = Math.min(100, Math.round((cat.amount / budgetLimit) * 100));
+        {viewMode === 'grid' ? (
+          <div className="grid grid-cols-2 gap-3">
+            {visibleCategories.map((cat, index) => {
+              const isHidden = hiddenCategories.has(cat.id);
+              const budgetLimit = cat.budget || 1000000;
+              const budgetPct = Math.min(100, Math.round((cat.amount / budgetLimit) * 100));
 
-            return (
-              <div
-                key={cat.id}
-                onClick={() => !isEditMode && onSelectCategory(cat.id)}
-                onContextMenu={(e) => {
-                  if (isEditMode && onDeleteCategory) {
-                    e.preventDefault();
-                    setContextMenuState({
-                      visible: true,
-                      x: e.clientX,
-                      y: e.clientY,
-                      category: cat,
-                    });
-                  }
-                }}
-                onTouchStart={(e) => {
-                  if (!isEditMode) return;
-                  const timer = setTimeout(() => {
-                    setContextMenuState({
-                      visible: true,
-                      x: e.touches[0].clientX,
-                      y: e.touches[0].clientY,
-                      category: cat,
-                    });
-                  }, 800);
-                  (e.target as any).dataset.timer = timer.toString();
-                }}
-                onTouchEnd={(e) => {
-                  const timer = (e.target as any).dataset.timer;
-                  if (timer) clearTimeout(parseInt(timer));
-                }}
-                onTouchMove={(e) => {
-                  const timer = (e.target as any).dataset.timer;
-                  if (timer) clearTimeout(parseInt(timer));
-                }}
-                className={`p-3.5 rounded-2xl bg-bg-secondary border border-border-color flex flex-col justify-between h-[108px] transition-all shadow-xs relative group ${
-                  !isEditMode ? 'cursor-pointer hover:border-[#007aff]/40 hover:shadow-sm active:scale-[0.98]' : 'cursor-default'
-                } ${isEditMode && isHidden ? 'opacity-40 grayscale' : ''}`}
-              >
-                <div className="flex items-center justify-between">
-                  <div
-                    className="w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs"
-                    style={{ backgroundColor: cat.bgHex }}
-                  >
-                    <span className="material-symbols-outlined text-[17px]">{cat.icon}</span>
-                  </div>
-                  {isEditMode ? (
-                    <button
-                      onClick={(e) => toggleCategoryVisibility(cat.id, e)}
-                      className="w-7 h-7 rounded-full bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-[15px]">
-                        {isHidden ? 'visibility_off' : 'visibility'}
-                      </span>
-                    </button>
-                  ) : (
-                    <span className="text-[11px] font-semibold text-text-secondary/70">
-                      {budgetPct}%
-                    </span>
-                  )}
-                </div>
-
-                <div className="space-y-1 mt-auto">
-                  <div className="flex items-baseline justify-between gap-1">
-                    <p className="text-[12px] font-medium text-text-secondary truncate">{cat.name}</p>
-                  </div>
-                  <p className="font-bold text-[14px] text-text-primary tracking-tight truncate leading-tight">
-                    {formatCurrency(cat.amount, currency)}
-                  </p>
-                  
-                  {/* Subtle Clean Budget Bar */}
-                  <div className="w-full bg-bg-tertiary h-1 rounded-full overflow-hidden">
+              return (
+                <div
+                  key={cat.id}
+                  onClick={() => !isEditMode && onSelectCategory(cat.id)}
+                  onContextMenu={(e) => {
+                    if (isEditMode && onDeleteCategory) {
+                      e.preventDefault();
+                      setContextMenuState({
+                        visible: true,
+                        x: e.clientX,
+                        y: e.clientY,
+                        category: cat,
+                      });
+                    }
+                  }}
+                  className={`p-3.5 rounded-2xl bg-bg-secondary border border-border-color flex flex-col justify-between h-[116px] transition-all shadow-xs relative group ${
+                    !isEditMode ? 'cursor-pointer hover:border-[#007aff]/40 hover:shadow-sm active:scale-[0.98]' : 'cursor-default'
+                  } ${isEditMode && isHidden ? 'opacity-40 grayscale' : ''}`}
+                >
+                  <div className="flex items-center justify-between">
                     <div
-                      className="h-full rounded-full transition-all duration-300"
-                      style={{
-                        width: `${budgetPct}%`,
-                        backgroundColor: cat.bgHex
-                      }}
-                    />
+                      className="w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs"
+                      style={{ backgroundColor: cat.bgHex }}
+                    >
+                      <span className="material-symbols-outlined text-[17px]">{cat.icon}</span>
+                    </div>
+                    {isEditMode ? (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => moveCategory(cat.id, 'up', e)}
+                          disabled={index === 0}
+                          title="Geser ke kiri/atas"
+                          className="w-6 h-6 rounded-md bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <ChevronUp size={13} />
+                        </button>
+                        <button
+                          onClick={(e) => moveCategory(cat.id, 'down', e)}
+                          disabled={index === visibleCategories.length - 1}
+                          title="Geser ke kanan/bawah"
+                          className="w-6 h-6 rounded-md bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <ChevronDown size={13} />
+                        </button>
+                        <button
+                          onClick={(e) => toggleCategoryVisibility(cat.id, e)}
+                          className="w-6 h-6 rounded-md bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors ml-0.5"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">
+                            {isHidden ? 'visibility_off' : 'visibility'}
+                          </span>
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-[11px] font-semibold text-text-secondary/70">
+                        {budgetPct}%
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-1 mt-auto">
+                    <div className="flex items-baseline justify-between gap-1">
+                      <p className="text-[12px] font-medium text-text-secondary truncate">{cat.name}</p>
+                    </div>
+                    <p className="font-bold text-[14px] text-text-primary tracking-tight truncate leading-tight">
+                      {formatCurrency(cat.amount, currency)}
+                    </p>
+                    
+                    {/* Subtle Clean Budget Bar */}
+                    <div className="w-full bg-bg-tertiary h-1 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{
+                          width: `${budgetPct}%`,
+                          backgroundColor: cat.bgHex
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* List View */
+          <div className="space-y-2.5">
+            {visibleCategories.map((cat, index) => {
+              const isHidden = hiddenCategories.has(cat.id);
+              const budgetLimit = cat.budget || 1000000;
+              const budgetPct = Math.min(100, Math.round((cat.amount / budgetLimit) * 100));
+
+              return (
+                <div
+                  key={cat.id}
+                  onClick={() => !isEditMode && onSelectCategory(cat.id)}
+                  onContextMenu={(e) => {
+                    if (isEditMode && onDeleteCategory) {
+                      e.preventDefault();
+                      setContextMenuState({
+                        visible: true,
+                        x: e.clientX,
+                        y: e.clientY,
+                        category: cat,
+                      });
+                    }
+                  }}
+                  className={`p-3 rounded-2xl bg-bg-secondary border border-border-color flex items-center justify-between gap-3 transition-all shadow-xs relative group ${
+                    !isEditMode ? 'cursor-pointer hover:border-[#007aff]/40 hover:shadow-sm active:scale-[0.99]' : 'cursor-default'
+                  } ${isEditMode && isHidden ? 'opacity-40 grayscale' : ''}`}
+                >
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs"
+                      style={{ backgroundColor: cat.bgHex }}
+                    >
+                      <span className="material-symbols-outlined text-[19px]">{cat.icon}</span>
+                    </div>
+
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-[13px] font-bold text-text-primary truncate">{cat.name}</p>
+                        <span className="text-[11px] font-semibold text-text-secondary">
+                          {budgetPct}%
+                        </span>
+                      </div>
+                      
+                      <div className="w-full bg-bg-tertiary h-1.5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-300"
+                          style={{
+                            width: `${budgetPct}%`,
+                            backgroundColor: cat.bgHex
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    <p className="font-bold text-[14px] text-text-primary tracking-tight">
+                      {formatCurrency(cat.amount, currency)}
+                    </p>
+
+                    {isEditMode && (
+                      <div className="flex items-center gap-1 pl-1 border-l border-border-color">
+                        <button
+                          onClick={(e) => moveCategory(cat.id, 'up', e)}
+                          disabled={index === 0}
+                          title="Geser ke atas"
+                          className="w-6 h-6 rounded-md bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <ChevronUp size={13} />
+                        </button>
+                        <button
+                          onClick={(e) => moveCategory(cat.id, 'down', e)}
+                          disabled={index === visibleCategories.length - 1}
+                          title="Geser ke bawah"
+                          className="w-6 h-6 rounded-md bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <ChevronDown size={13} />
+                        </button>
+                        <button
+                          onClick={(e) => toggleCategoryVisibility(cat.id, e)}
+                          className="w-6 h-6 rounded-md bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">
+                            {isHidden ? 'visibility_off' : 'visibility'}
+                          </span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* 5. Grouped Timeline Latest Transactions */}

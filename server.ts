@@ -31,6 +31,35 @@ async function startServer() {
     }
   });
 
+  // ─── Dev Bypass Login API (Local Development Only - Disabled in Production) ─
+  if (process.env.NODE_ENV !== "production") {
+    app.post("/api/auth/dev-login", async (_req, res) => {
+      try {
+        const devEmail = "dev@dompetku.local";
+        const existingUser = await db.getUserByEmail(devEmail);
+        const now = new Date().toISOString();
+
+        const userObj = {
+          id: existingUser?.id || "usr_dev_local",
+          email: devEmail,
+          name: "Developer Local",
+          avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=DevUser",
+          createdAt: existingUser?.createdAt || now,
+          updatedAt: now,
+          loginCount: (existingUser?.loginCount || 0) + 1,
+        };
+
+        const user = await db.upsertUser(userObj);
+        const token = `token_dev_${user.id}_${Date.now()}`;
+
+        res.json({ success: true, user, token });
+      } catch (error: any) {
+        console.error("POST /api/auth/dev-login error:", error);
+        res.status(500).json({ success: false, error: error.message || "Gagal dev login" });
+      }
+    });
+  }
+
   // ─── Data API (dummy JSON in dev, PostgreSQL in prod) ──────────────────────
 
   // GET all transactions

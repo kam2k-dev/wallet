@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Sun, Moon } from 'lucide-react';
 import { CURRENCIES, CurrencyCode, getCurrency } from '../utils/currency';
 import { FALLBACK_RATES } from '../utils/exchangeRate';
 import { User } from '../types';
@@ -161,10 +162,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           className="flex items-center justify-between p-3.5 hover:bg-bg-primary rounded-2xl cursor-pointer transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#1c1c1e]/5 dark:bg-white/10 flex items-center justify-center">
-              <span className="material-symbols-outlined text-text-primary text-[18px]">
-                {isDarkMode ? 'dark_mode' : 'light_mode'}
-              </span>
+            <div className="w-8 h-8 rounded-full bg-[#1c1c1e]/5 dark:bg-white/10 flex items-center justify-center text-text-primary">
+              {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
             </div>
             <span className="text-[15px] font-medium text-text-primary">Theme Appearance</span>
           </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { Sun, Moon, Zap } from 'lucide-react';
 import { User } from '../types';
 import { api } from '../api/client';
 
@@ -44,18 +45,34 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     setError('Login Google dibatalkan atau terjadi kesalahan.');
   };
 
+  const handleDevQuickLogin = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await api.devLogin();
+      if (res.success && res.user && res.token) {
+        onLoginSuccess(res.user, res.token);
+      } else {
+        setError(res.error || 'Gagal dev bypass login.');
+      }
+    } catch (err: any) {
+      console.error('Dev login error:', err);
+      setError(err.message || 'Terjadi kesalahan saat dev bypass login.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className={`min-h-screen flex flex-col justify-center items-center px-4 transition-colors duration-200 ${
       isDarkMode ? 'bg-bg-primary text-text-primary' : 'bg-[#f4f7fb] text-text-primary'
     }`}>
       <button
         onClick={onToggleDarkMode}
-        className="absolute top-6 right-6 p-3 rounded-2xl bg-bg-secondary border border-border-color shadow-sm hover:scale-105 transition-all text-text-secondary hover:text-text-primary"
+        className="absolute top-6 right-6 p-3 rounded-2xl bg-bg-secondary border border-border-color shadow-sm hover:scale-105 transition-all text-text-secondary hover:text-text-primary flex items-center justify-center"
         title="Toggle Theme"
       >
-        <span className="material-symbols-outlined text-[20px]">
-          {isDarkMode ? 'light_mode' : 'dark_mode'}
-        </span>
+        {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
       </button>
 
       <div className="w-full max-w-sm bg-bg-secondary border border-border-color rounded-3xl p-8 shadow-xl text-center space-y-6">
@@ -78,22 +95,38 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           </div>
         )}
 
-        <div className="flex justify-center py-2">
+        <div className="flex flex-col items-center gap-3 py-2">
           {isLoading ? (
             <div className="flex items-center gap-2 text-sm text-text-secondary">
               <span className="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
               <span>Memproses Login...</span>
             </div>
           ) : (
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
-              theme={isDarkMode ? 'filled_black' : 'outline'}
-              shape="pill"
-              size="large"
-              width="280"
-              text="signin_with"
-            />
+            <>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme={isDarkMode ? 'filled_black' : 'outline'}
+                shape="pill"
+                size="large"
+                width="280"
+                text="signin_with"
+              />
+
+              {import.meta.env.DEV && (
+                <div className="w-full mt-2 p-3 border border-amber-500/30 rounded-xl bg-amber-500/10 text-center">
+                  <p className="text-[11px] text-amber-500 font-mono font-semibold mb-2">🛠️ DEV ONLY</p>
+                  <button
+                    onClick={handleDevQuickLogin}
+                    className="flex items-center justify-center gap-1.5 w-full py-2 px-4 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-black transition-all shadow-sm"
+                    title="Quick login for development without Google OAuth"
+                  >
+                    <Zap size={14} className="fill-black text-black" />
+                    <span>⚡ Quick Dev Login (Bypass)</span>
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
 
