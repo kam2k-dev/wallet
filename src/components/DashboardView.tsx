@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutGrid, List, ChevronUp, ChevronDown } from 'lucide-react';
+import { LayoutGrid, List } from 'lucide-react';
 import { Category, Transaction, CategoryId } from '../types';
 import { CurrencyCode, formatCurrency } from '../utils/currency';
 import { EditCategoryModal } from './EditCategoryModal';
@@ -13,6 +13,7 @@ import {
   CheckIcon,
   ChevronRightIcon,
   TrashIcon,
+  Bars3Icon,
 } from '@heroicons/react/24/outline';
 
 interface DashboardViewProps {
@@ -74,6 +75,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [draggedCategoryId, setDraggedCategoryId] = useState<string | null>(null);
 
   const toggleCategoryVisibility = (id: CategoryId, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -94,22 +96,45 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     localStorage.setItem('categoryViewMode', mode);
   };
 
-  const moveCategory = (id: string, direction: 'up' | 'down', e: React.MouseEvent) => {
-    e.stopPropagation();
-    const currentOrder = visibleCategories.map(c => c.id);
-    const index = currentOrder.indexOf(id as CategoryId);
-    if (index === -1) return;
+  // HTML5 Drag & Drop handlers for fluid reordering
+  const handleDragStart = (id: string, e: React.DragEvent) => {
+    setDraggedCategoryId(id);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', id);
+  };
 
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= currentOrder.length) return;
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (targetId: string, e: React.DragEvent) => {
+    e.preventDefault();
+    if (!draggedCategoryId || draggedCategoryId === targetId) {
+      setDraggedCategoryId(null);
+      return;
+    }
+
+    const currentOrder = visibleCategories.map(c => c.id);
+    const sourceIndex = currentOrder.indexOf(draggedCategoryId as CategoryId);
+    const targetIndex = currentOrder.indexOf(targetId as CategoryId);
+
+    if (sourceIndex === -1 || targetIndex === -1) {
+      setDraggedCategoryId(null);
+      return;
+    }
 
     const newOrder = [...currentOrder];
-    const temp = newOrder[index];
-    newOrder[index] = newOrder[targetIndex];
-    newOrder[targetIndex] = temp;
+    const [movedItem] = newOrder.splice(sourceIndex, 1);
+    newOrder.splice(targetIndex, 0, movedItem);
 
     setCategoryOrder(newOrder);
     localStorage.setItem('categoryOrder', JSON.stringify(newOrder));
+    setDraggedCategoryId(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedCategoryId(null);
   };
 
   // Close context menu when clicking outside
@@ -294,14 +319,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {viewMode === 'grid' ? (
           <div className="grid grid-cols-2 gap-3">
-            {visibleCategories.map((cat, index) => {
+            {visibleCategories.map((cat) => {
               const isHidden = hiddenCategories.has(cat.id);
               const budgetLimit = cat.budget || 1000000;
               const budgetPct = Math.min(100, Math.round((cat.amount / budgetLimit) * 100));
+              const isDragging = draggedCategoryId === cat.id;
 
               return (
                 <div
                   key={cat.id}
+                  draggable={isEditMode}
+                  onDragStart={(e) => handleDragStart(cat.id, e)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(cat.id, e)}
+                  onDragEnd={handleDragEnd}
                   onClick={() => !isEditMode && onSelectCategory(cat.id)}
                   onContextMenu={(e) => {
                     if (isEditMode && onDeleteCategory) {
@@ -314,33 +345,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       });
                     }
                   }}
-                  className={`p-3.5 rounded-2xl bg-bg-secondary border border-border-color flex flex-col justify-between h-[116px] transition-all shadow-xs relative group ${
-                    !isEditMode ? 'cursor-pointer hover:border-[#007aff]/40 hover:shadow-sm active:scale-[0.98]' : 'cursor-default'
-                  } ${isEditMode && isHidden ? 'opacity-40 grayscale' : ''}`}
+                  className={`p-3.5 rounded-2xl bg-bg-secondary border border-border-color flex flex-col justify-between h-[116px] transition-all shadow-xs relative group select-none ${
+                    !isEditMode
+                      ? 'cursor-pointer hover:border-[#007aff]/40 hover:shadow-sm active:scale-[0.98]'
+                      : 'cursor-grab active:cursor-grabbing border-dashed hover:border-brand-primary/60'
+                  } ${isEditMode && isHidden ? 'opacity-40 grayscale' : ''} ${
+                    isDragging ? 'opacity-30 scale-95 border-brand-primary ring-2 ring-brand-primary/40' : ''
+                  }`}
                 >
                   <div className="flex items-center justify-between">
                     <CategoryIcon category={cat} size="md" />
                     {isEditMode ? (
                       <div className="flex items-center gap-1">
                         <button
-                          onClick={(e) => moveCategory(cat.id, 'up', e)}
-                          disabled={index === 0}
-                          title="Geser ke kiri/atas"
-                          className="w-6 h-6 rounded-md bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                          <ChevronUp size={13} />
-                        </button>
-                        <button
-                          onClick={(e) => moveCategory(cat.id, 'down', e)}
-                          disabled={index === visibleCategories.length - 1}
-                          title="Geser ke kanan/bawah"
-                          className="w-6 h-6 rounded-md bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                          <ChevronDown size={13} />
-                        </button>
-                        <button
+                          type="button"
                           onClick={(e) => toggleCategoryVisibility(cat.id, e)}
-                          className="w-6 h-6 rounded-md bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors ml-0.5"
+                          title={isHidden ? "Tampilkan Kategori" : "Sembunyikan Kategori"}
+                          className="w-7 h-7 rounded-lg bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors"
                         >
                           {isHidden ? (
                             <EyeSlashIcon className="w-3.5 h-3.5" />
@@ -348,6 +369,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             <EyeIcon className="w-3.5 h-3.5" />
                           )}
                         </button>
+                        <div
+                          title="Tahan & geser untuk mengubah urutan"
+                          className="w-7 h-7 rounded-lg bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary cursor-grab active:cursor-grabbing"
+                        >
+                          <Bars3Icon className="w-4 h-4 text-text-secondary" />
+                        </div>
                       </div>
                     ) : (
                       <span className="text-[11px] font-semibold text-text-secondary/70">
@@ -382,14 +409,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         ) : (
           /* List View */
           <div className="space-y-2.5">
-            {visibleCategories.map((cat, index) => {
+            {visibleCategories.map((cat) => {
               const isHidden = hiddenCategories.has(cat.id);
               const budgetLimit = cat.budget || 1000000;
               const budgetPct = Math.min(100, Math.round((cat.amount / budgetLimit) * 100));
+              const isDragging = draggedCategoryId === cat.id;
 
               return (
                 <div
                   key={cat.id}
+                  draggable={isEditMode}
+                  onDragStart={(e) => handleDragStart(cat.id, e)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(cat.id, e)}
+                  onDragEnd={handleDragEnd}
                   onClick={() => !isEditMode && onSelectCategory(cat.id)}
                   onContextMenu={(e) => {
                     if (isEditMode && onDeleteCategory) {
@@ -402,9 +435,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       });
                     }
                   }}
-                  className={`p-3 rounded-2xl bg-bg-secondary border border-border-color flex items-center justify-between gap-3 transition-all shadow-xs relative group ${
-                    !isEditMode ? 'cursor-pointer hover:border-[#007aff]/40 hover:shadow-sm active:scale-[0.99]' : 'cursor-default'
-                  } ${isEditMode && isHidden ? 'opacity-40 grayscale' : ''}`}
+                  className={`p-3 rounded-2xl bg-bg-secondary border border-border-color flex items-center justify-between gap-3 transition-all shadow-xs relative group select-none ${
+                    !isEditMode
+                      ? 'cursor-pointer hover:border-[#007aff]/40 hover:shadow-sm active:scale-[0.99]'
+                      : 'cursor-grab active:cursor-grabbing border-dashed hover:border-brand-primary/60'
+                  } ${isEditMode && isHidden ? 'opacity-40 grayscale' : ''} ${
+                    isDragging ? 'opacity-30 scale-95 border-brand-primary ring-2 ring-brand-primary/40' : ''
+                  }`}
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <CategoryIcon category={cat} size="lg" />
@@ -435,26 +472,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     </p>
 
                     {isEditMode && (
-                      <div className="flex items-center gap-1 pl-1 border-l border-border-color">
+                      <div className="flex items-center gap-1.5 pl-1 border-l border-border-color">
                         <button
-                          onClick={(e) => moveCategory(cat.id, 'up', e)}
-                          disabled={index === 0}
-                          title="Geser ke atas"
-                          className="w-6 h-6 rounded-md bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                          <ChevronUp size={13} />
-                        </button>
-                        <button
-                          onClick={(e) => moveCategory(cat.id, 'down', e)}
-                          disabled={index === visibleCategories.length - 1}
-                          title="Geser ke bawah"
-                          className="w-6 h-6 rounded-md bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                          <ChevronDown size={13} />
-                        </button>
-                        <button
+                          type="button"
                           onClick={(e) => toggleCategoryVisibility(cat.id, e)}
-                          className="w-6 h-6 rounded-md bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors"
+                          title={isHidden ? "Tampilkan Kategori" : "Sembunyikan Kategori"}
+                          className="w-7 h-7 rounded-lg bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors"
                         >
                           {isHidden ? (
                             <EyeSlashIcon className="w-3.5 h-3.5" />
@@ -462,6 +485,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             <EyeIcon className="w-3.5 h-3.5" />
                           )}
                         </button>
+                        <div
+                          title="Tahan & geser untuk mengubah urutan"
+                          className="w-7 h-7 rounded-lg bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary cursor-grab active:cursor-grabbing"
+                        >
+                          <Bars3Icon className="w-4 h-4 text-text-secondary" />
+                        </div>
                       </div>
                     )}
                   </div>
