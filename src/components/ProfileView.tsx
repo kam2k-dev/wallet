@@ -3,6 +3,14 @@ import { Sun, Moon } from 'lucide-react';
 import { CURRENCIES, CurrencyCode, getCurrency } from '../utils/currency';
 import { FALLBACK_RATES } from '../utils/exchangeRate';
 import { User } from '../types';
+import {
+  UserCircleIcon,
+  BanknotesIcon,
+  CheckCircleIcon,
+  ArrowDownTrayIcon,
+  ArrowRightOnRectangleIcon,
+  ChevronRightIcon,
+} from '@heroicons/react/24/solid';
 
 // Official WhatsApp SVG Icon Component
 const WhatsAppIcon: React.FC<{ className?: string; size?: number }> = ({
@@ -81,8 +89,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <h2 className="text-2xl font-extrabold text-text-primary tracking-tight">
             {user?.name || 'Tamu'}
           </h2>
-          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#2170e4]/5 text-[#2170e4] text-xs font-semibold mt-2">
-            <span className="material-symbols-outlined text-[16px]">account_circle</span>
+          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-brand-primary/10 text-brand-primary text-xs font-semibold mt-2">
+            <UserCircleIcon className="w-4 h-4" />
             <span>{user?.email || 'Belum Terhubung'}</span>
           </div>
         </div>
@@ -97,7 +105,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           className="flex items-center justify-between p-3.5 hover:bg-bg-primary rounded-2xl cursor-pointer transition-colors"
         >
           <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-[#0058be]">payments</span>
+            <BanknotesIcon className="w-5 h-5 text-brand-primary" />
             <span className="text-[14px] font-medium text-text-primary">Primary Currency</span>
           </div>
           <span className="text-[12px] text-[#77767b]">
@@ -110,7 +118,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <div className="mx-2 mb-2 p-2 bg-bg-primary rounded-2xl border border-border-color space-y-1 animate-in fade-in">
             <div className="px-3 py-1.5 text-[11px] font-medium text-[#77767b] flex justify-between items-center border-b border-border-color mb-1">
               <span>Real-time conversion rates</span>
-              <span className="text-[10px] text-[#2170e4] font-semibold">● Live Exchange</span>
+              <span className="text-[10px] text-brand-primary font-semibold">● Live Exchange</span>
             </div>
             {CURRENCIES.map((cur) => {
               const rateVal = rates[cur.code] || 1;
@@ -123,7 +131,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   }}
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all ${
                     currency === cur.code
-                      ? 'bg-[#2170e4]/10 border border-[#2170e4]/30'
+                      ? 'bg-brand-primary/10 border border-brand-primary/30'
                       : 'hover:bg-bg-secondary border border-transparent'
                   }`}
                 >
@@ -131,7 +139,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     <span
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold ${
                         currency === cur.code
-                          ? 'bg-[#2170e4] text-white'
+                          ? 'bg-brand-primary text-white'
                           : 'bg-[#e1e8fd] text-text-secondary'
                       }`}
                     >
@@ -147,9 +155,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     </span>
                   </span>
                   {currency === cur.code && (
-                    <span className="material-symbols-outlined text-[#2170e4] text-[18px]">
-                      check_circle
-                    </span>
+                    <CheckCircleIcon className="w-5 h-5 text-brand-primary" />
                   )}
                 </button>
               );
@@ -167,7 +173,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
             <span className="text-[15px] font-medium text-text-primary">Theme Appearance</span>
           </div>
-          <div className={`w-11 h-6 rounded-full p-1 transition-colors ${isDarkMode ? 'bg-[#2170e4]' : 'bg-[#e5e5ea]'}`}>
+          <div className={`w-11 h-6 rounded-full p-1 transition-colors ${isDarkMode ? 'bg-brand-primary' : 'bg-[#e5e5ea]'}`}>
             <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isDarkMode ? 'translate-x-5' : 'translate-x-0'}`} />
           </div>
         </div>
@@ -180,15 +186,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         {onExportCSV && (
           <div
             onClick={onExportCSV}
-            className="flex items-center justify-between p-3.5 hover:bg-[#27AE60]/10 rounded-2xl cursor-pointer group transition-colors"
+            className="flex items-center justify-between p-3.5 hover:bg-brand-income/10 rounded-2xl cursor-pointer group transition-colors"
           >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#27AE60]/10 flex items-center justify-center group-hover:bg-[#27AE60]/20 transition-colors">
-                <span className="material-symbols-outlined text-[#27AE60] text-[18px]">table_view</span>
+              <div className="w-8 h-8 rounded-full bg-brand-income/10 flex items-center justify-center group-hover:bg-brand-income/20 transition-colors">
+                <ArrowDownTrayIcon className="w-4 h-4 text-brand-income" />
               </div>
               <span className="text-[15px] font-medium text-text-primary">Export to CSV</span>
             </div>
-            <span className="material-symbols-outlined text-text-secondary group-hover:text-[#27AE60] transition-colors">download</span>
+            <ArrowDownTrayIcon className="w-4 h-4 text-text-secondary group-hover:text-brand-income transition-colors" />
           </div>
         )}
 
@@ -199,11 +205,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-[#00bcd4]/10 flex items-center justify-center group-hover:bg-[#00bcd4]/20 transition-colors">
-                <span className="material-symbols-outlined text-[#00bcd4] text-[18px]">data_object</span>
+                <ArrowDownTrayIcon className="w-4 h-4 text-[#00bcd4]" />
               </div>
-              <span className="text-[15px] font-medium text-text-primary">Backup Data (JSON)</span>
+              <span className="text-[15px] font-medium text-text-primary">Export to JSON</span>
             </div>
-            <span className="material-symbols-outlined text-text-secondary group-hover:text-[#00bcd4] transition-colors">download</span>
+            <ArrowDownTrayIcon className="w-4 h-4 text-text-secondary group-hover:text-[#00bcd4] transition-colors" />
           </div>
         )}
       </section>
@@ -240,11 +246,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-[#ba1a1a]/10 flex items-center justify-center group-hover:bg-[#ba1a1a]/20 transition-colors">
-                  <span className="material-symbols-outlined text-[#ba1a1a] text-[18px]">logout</span>
+                  <ArrowRightOnRectangleIcon className="w-4 h-4 text-[#ba1a1a]" />
                 </div>
                 <span className="text-[15px] font-medium text-[#ba1a1a]">Keluar dari Akun</span>
               </div>
-              <span className="material-symbols-outlined text-[#ba1a1a]/50 group-hover:text-[#ba1a1a] transition-colors">chevron_right</span>
+              <ChevronRightIcon className="w-4 h-4 text-[#ba1a1a]/50 group-hover:text-[#ba1a1a] transition-colors" />
             </div>
           )}
         </section>

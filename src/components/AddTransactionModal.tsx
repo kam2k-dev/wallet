@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Category, CategoryId, Transaction } from '../types';
 import { CurrencyCode, getCurrency } from '../utils/currency';
+import { XMarkIcon, ArrowUpIcon, ArrowDownIcon, ChevronDownIcon, CheckIcon } from '@heroicons/react/24/solid';
+import { CategoryIcon } from './ui/CategoryIcon';
 
 interface AddTransactionModalProps {
   categories: Category[];
@@ -117,7 +119,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
         <div className="px-6 py-4 flex items-center justify-between border-b border-border-color">
           <div className="flex items-center gap-2.5">
             <div className={`w-3 h-3 rounded-full ${
-              type === 'expense' ? 'bg-[#ba1a1a]' : 'bg-[#27AE60]'
+              type === 'expense' ? 'bg-brand-expense' : 'bg-brand-income'
             }`} />
             <h2 className="text-[17px] font-bold text-text-primary tracking-tight">
               {initialData ? 'Edit Transaksi' : 'Tambah Transaksi'}
@@ -128,7 +130,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-bg-primary hover:bg-bg-tertiary flex items-center justify-center text-text-secondary hover:text-text-primary transition-all active:scale-95 border border-border-color"
           >
-            <span className="material-symbols-outlined text-[18px]">close</span>
+            <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
 
@@ -145,12 +147,12 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               }}
               className={`py-2.5 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 ${
                 type === 'expense'
-                  ? 'bg-[#ba1a1a] text-white shadow-sm'
+                  ? 'bg-brand-expense text-white shadow-sm'
                   : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary/60'
               }`}
             >
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${type === 'expense' ? 'bg-white/20' : 'bg-[#ba1a1a]/10 text-[#ba1a1a]'}`}>
-                <span className="material-symbols-outlined text-[14px]">arrow_upward</span>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${type === 'expense' ? 'bg-white/20' : 'bg-brand-expense/10 text-brand-expense'}`}>
+                <ArrowUpIcon className="w-3.5 h-3.5" />
               </div>
               <span>Pengeluaran</span>
             </button>
@@ -163,12 +165,12 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
               }}
               className={`py-2.5 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-1.5 ${
                 type === 'income'
-                  ? 'bg-[#27AE60] text-white shadow-sm'
+                  ? 'bg-brand-income text-white shadow-sm'
                   : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary/60'
               }`}
             >
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${type === 'income' ? 'bg-white/20' : 'bg-[#27AE60]/10 text-[#27AE60]'}`}>
-                <span className="material-symbols-outlined text-[14px]">arrow_downward</span>
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${type === 'income' ? 'bg-white/20' : 'bg-brand-income/10 text-brand-income'}`}>
+                <ArrowDownIcon className="w-3.5 h-3.5" />
               </div>
               <span>Pemasukan</span>
             </button>
@@ -182,7 +184,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 Nominal ({activeCur.symbol})
               </span>
               <div className="flex items-center justify-center gap-1">
-                <span className={`text-2xl font-bold ${type === 'expense' ? 'text-[#ba1a1a]' : 'text-[#27AE60]'}`}>
+                <span className={`text-2xl font-bold ${type === 'expense' ? 'text-brand-expense' : 'text-brand-income'}`}>
                   {type === 'expense' ? '-' : '+'}
                 </span>
                 <input
@@ -213,7 +215,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                 placeholder="Cth: Belanja Mingguan, Gaji Bulanan..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-bg-primary rounded-xl text-[14px] font-normal text-text-primary outline-none border border-border-color focus:border-[#007aff] focus:ring-1 focus:ring-[#007aff] transition-all placeholder:text-text-secondary/40"
+                className="w-full px-3.5 py-2.5 bg-bg-primary rounded-xl text-[14px] font-normal text-text-primary outline-none border border-border-color focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all placeholder:text-text-secondary/40"
               />
             </div>
 
@@ -232,16 +234,11 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                       onClick={() => setCategoryId(cat.id)}
                       className={`p-2.5 rounded-2xl text-left flex items-center gap-2.5 transition-all border ${
                         isSelected
-                          ? 'border-[#007aff] bg-[#007aff]/10 ring-1 ring-[#007aff]'
+                          ? 'border-brand-primary bg-brand-primary/10 ring-1 ring-brand-primary'
                           : 'border-border-color bg-bg-primary text-text-secondary hover:text-text-primary hover:bg-bg-tertiary'
                       }`}
                     >
-                      <span
-                        className="w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm"
-                        style={{ backgroundColor: cat.bgHex }}
-                      >
-                        <span className="material-symbols-outlined text-[17px]">{cat.icon || 'category'}</span>
-                      </span>
+                      <CategoryIcon category={cat} size="md" />
                       <span className={`text-[13px] truncate ${isSelected ? 'text-text-primary font-semibold' : 'font-medium'}`}>
                         {cat.name}
                       </span>
@@ -264,16 +261,14 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                   onClick={() => setIsPaymentMenuOpen(!isPaymentMenuOpen)}
                   className={`w-full px-3.5 py-2.5 bg-bg-primary rounded-xl text-[13px] font-medium text-text-primary flex items-center justify-between border transition-all ${
                     isPaymentMenuOpen
-                      ? 'border-[#007aff] ring-1 ring-[#007aff]'
+                      ? 'border-brand-primary ring-1 ring-brand-primary'
                       : 'border-border-color hover:border-text-secondary/40'
                   }`}
                 >
                   <span className="truncate">{paymentMethod}</span>
-                  <span className={`material-symbols-outlined text-[18px] text-text-secondary shrink-0 transition-transform duration-200 ${
+                  <ChevronDownIcon className={`w-4 h-4 text-text-secondary shrink-0 transition-transform duration-200 ${
                     isPaymentMenuOpen ? 'rotate-180' : ''
-                  }`}>
-                    expand_more
-                  </span>
+                  }`} />
                 </button>
 
                 {/* Floating Payment Dropdown */}
@@ -296,13 +291,13 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
                             }}
                             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-medium transition-colors ${
                               isSelected
-                                ? 'bg-[#007aff]/10 text-[#007aff] font-semibold'
+                                ? 'bg-brand-primary/10 text-brand-primary font-semibold'
                                 : 'text-text-primary hover:bg-bg-primary'
                             }`}
                           >
                             <span>{pm}</span>
                             {isSelected && (
-                              <span className="material-symbols-outlined text-[16px] text-[#007aff]">check</span>
+                              <CheckIcon className="w-4 h-4 text-brand-primary" />
                             )}
                           </button>
                         );
@@ -349,13 +344,11 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({
             form="tx-form"
             className={`w-full py-3 rounded-2xl text-white text-[14px] font-bold shadow-md transition-all flex items-center justify-center gap-2 active:scale-[0.98] ${
               type === 'expense'
-                ? 'bg-[#ba1a1a] hover:bg-[#a01616]'
-                : 'bg-[#27AE60] hover:bg-[#219653]'
+                ? 'bg-brand-expense hover:bg-[#a01616]'
+                : 'bg-brand-income hover:bg-[#219653]'
             }`}
           >
-            <span className="material-symbols-outlined text-[18px]">
-              {initialData ? 'save' : 'add'}
-            </span>
+            <CheckIcon className="w-5 h-5" />
             <span>{initialData ? 'Simpan Perubahan' : 'Simpan Transaksi'}</span>
           </button>
         </div>

@@ -7,7 +7,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     amount: 0,
     color: '#9466ff',
     bgHex: '#9c27b0',
-    icon: 'shopping_bag',
+    icon: 'shopping-bag',
     type: 'expense',
   },
   {
@@ -16,7 +16,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     amount: 0,
     color: '#2170e4',
     bgHex: '#2196f3',
-    icon: 'directions_car',
+    icon: 'truck',
     type: 'expense',
   },
   {
@@ -25,7 +25,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     amount: 0,
     color: '#27AE60',
     bgHex: '#4caf50',
-    icon: 'event',
+    icon: 'sparkles',
     type: 'expense',
   },
   {
@@ -43,7 +43,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     amount: 0,
     color: '#27AE60',
     bgHex: '#2ecc71',
-    icon: 'payments',
+    icon: 'banknotes',
     type: 'income',
   },
   {
@@ -52,7 +52,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     amount: 0,
     color: '#00bcd4',
     bgHex: '#0097a7',
-    icon: 'work',
+    icon: 'computer-desktop',
     type: 'income',
   },
   {
@@ -61,7 +61,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     amount: 0,
     color: '#8e44ad',
     bgHex: '#9b59b6',
-    icon: 'trending_up',
+    icon: 'arrow-trending-up',
     type: 'income',
   },
   {
@@ -70,7 +70,7 @@ export const INITIAL_CATEGORIES: Category[] = [
     amount: 0,
     color: '#16a085',
     bgHex: '#1abc9c',
-    icon: 'savings',
+    icon: 'circle-stack',
     type: 'income',
   },
 ];

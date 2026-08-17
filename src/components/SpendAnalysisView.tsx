@@ -1,6 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { Category, Transaction, CategoryId } from '../types';
 import { CurrencyCode, formatCurrency } from '../utils/currency';
+import { TransactionItem } from './ui/TransactionItem';
+import {
+  CalendarDaysIcon,
+  ChevronDownIcon,
+  CheckIcon,
+  ChartPieIcon,
+  ArrowTrendingUpIcon,
+  MagnifyingGlassIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/solid';
+import { ChartPieIcon as ChartPieOutline } from '@heroicons/react/24/outline';
 
 interface SpendAnalysisViewProps {
   categories: Category[];
@@ -161,11 +172,11 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
             onClick={() => setIsTimeMenuOpen(!isTimeMenuOpen)}
             className={`flex items-center gap-1.5 bg-bg-secondary border text-text-primary text-[12px] font-medium h-[38px] px-3 rounded-2xl shadow-sm transition-all ${
               isTimeMenuOpen
-                ? 'border-[#0058be] ring-2 ring-[#0058be]/20'
+                ? 'border-brand-primary ring-2 ring-brand-primary/20'
                 : 'border-border-color hover:bg-bg-tertiary'
             }`}
           >
-            <span className="material-symbols-outlined text-[16px] text-[#0058be]">calendar_today</span>
+            <CalendarDaysIcon className="w-4 h-4 text-brand-primary" />
             <span>
               {timeFilter === 'all'
                 ? 'All Time'
@@ -175,13 +186,9 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
                 ? 'Last Month'
                 : 'This Year'}
             </span>
-            <span
-              className={`material-symbols-outlined text-[16px] text-text-secondary transition-transform duration-200 ${
-                isTimeMenuOpen ? 'rotate-180' : ''
-              }`}
-            >
-              expand_more
-            </span>
+            <ChevronDownIcon className={`w-3.5 h-3.5 text-text-secondary transition-transform duration-200 ${
+              isTimeMenuOpen ? 'rotate-180' : ''
+            }`} />
           </button>
 
           {/* Floating Dropdown Menu */}
@@ -195,10 +202,10 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
               <div className="absolute right-0 top-full mt-1.5 w-40 bg-bg-secondary rounded-2xl border border-border-color shadow-xl p-1.5 z-50 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
                 {(
                   [
-                    { id: 'all', label: 'All Time', icon: 'all_inclusive' },
-                    { id: 'this_month', label: 'This Month', icon: 'calendar_month' },
-                    { id: 'last_month', label: 'Last Month', icon: 'history' },
-                    { id: 'this_year', label: 'This Year', icon: 'date_range' },
+                    { id: 'all', label: 'All Time' },
+                    { id: 'this_month', label: 'This Month' },
+                    { id: 'last_month', label: 'Last Month' },
+                    { id: 'this_year', label: 'This Year' },
                   ] as const
                 ).map((item) => {
                   const isSelected = timeFilter === item.id;
@@ -212,20 +219,13 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
                       }}
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[12px] font-medium transition-colors ${
                         isSelected
-                          ? 'bg-[#0058be]/10 text-[#0058be] font-semibold'
+                          ? 'bg-brand-primary/10 text-brand-primary font-semibold'
                           : 'text-text-primary hover:bg-bg-tertiary'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[15px] opacity-70">
-                          {item.icon}
-                        </span>
-                        <span>{item.label}</span>
-                      </div>
+                      <span>{item.label}</span>
                       {isSelected && (
-                        <span className="material-symbols-outlined text-[16px] text-[#0058be]">
-                          check
-                        </span>
+                        <CheckIcon className="w-4 h-4 text-brand-primary" />
                       )}
                     </button>
                   );
@@ -268,15 +268,13 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
           <button
             onClick={() => setShowPieDetail(!showPieDetail)}
             aria-label="Toggle Pie Chart"
-            className="p-2.5 rounded-full bg-[#e1e8fd] dark:bg-black/20 text-text-secondary hover:bg-[#dce2f7] active:scale-95 transition-all shadow-sm"
+            className="p-2.5 rounded-full bg-[#e1e8fd] dark:bg-black/20 text-text-secondary hover:bg-[#dce2f7] active:scale-95 transition-all shadow-sm flex items-center justify-center"
           >
-            <span
-              className={`material-symbols-outlined text-[20px] ${
-                showPieDetail ? 'fill-1 text-[#0058be]' : ''
-              }`}
-            >
-              pie_chart
-            </span>
+            {showPieDetail ? (
+              <ChartPieIcon className="w-5 h-5 text-brand-primary" />
+            ) : (
+              <ChartPieOutline className="w-5 h-5 text-text-secondary" />
+            )}
           </button>
         </div>
 
@@ -305,7 +303,7 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
         {/* Smart Insight */}
         {topCategory && (
           <div className="flex items-center gap-2 p-2.5 bg-bg-primary rounded-2xl text-[12px] text-text-secondary border border-border-color">
-            <span className="material-symbols-outlined text-[#0058be] text-[18px]">insights</span>
+            <ArrowTrendingUpIcon className="w-4 h-4 text-brand-primary shrink-0" />
             <span>
               Highest {typeFilter === 'income' ? 'income' : 'activity'} in{' '}
               <strong className="text-text-primary">{topCategory.name}</strong> (
@@ -340,48 +338,24 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
         )}
       </section>
 
-      {/* Category Grid */}
-      <section className="grid grid-cols-2 gap-2.5">
-        {categoryBreakdown.map((cat) => (
-          <div
-            key={cat.id}
-            onClick={() => onSelectCategory(cat.id)}
-            className="bg-bg-secondary p-3.5 rounded-2xl shadow-sm flex flex-col space-y-1.5 border border-border-color cursor-pointer hover:border-[#2170e4]/50 active:scale-98 transition-all"
-          >
-            <div className="flex items-center space-x-2">
-              <div
-                className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: cat.color }}
-              />
-              <span className="text-[12px] font-medium text-text-secondary truncate">
-                {cat.name}
-              </span>
-            </div>
-            <span className="font-semibold text-[15px] leading-[22px] text-text-primary truncate">
-              {formatCurrency(cat.filteredAmount, currency)}
-            </span>
-          </div>
-        ))}
-      </section>
-
       {/* Search Bar */}
       <section className="relative">
         <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[#77767b]">
-          <span className="material-symbols-outlined text-[20px]">search</span>
+          <MagnifyingGlassIcon className="w-4 h-4 text-text-secondary" />
         </div>
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search for any transaction"
-          className="w-full h-11 pl-11 pr-4 bg-bg-secondary rounded-full border border-border-color focus:ring-2 focus:ring-[#0058be] text-[13px] placeholder:text-[#77767b] outline-none text-text-primary"
+          className="w-full h-11 pl-11 pr-4 bg-bg-secondary rounded-full border border-border-color focus:ring-2 focus:ring-brand-primary text-[13px] placeholder:text-[#77767b] outline-none text-text-primary"
         />
         {searchQuery && (
           <button
             onClick={() => setSearchQuery('')}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-[#77767b] hover:text-text-primary"
           >
-            <span className="material-symbols-outlined text-[18px]">cancel</span>
+            <XCircleIcon className="w-4 h-4" />
           </button>
         )}
       </section>
@@ -400,49 +374,14 @@ export const SpendAnalysisView: React.FC<SpendAnalysisViewProps> = ({
             filteredTransactions.map((tx) => {
               const cat = categories.find((c) => c.id === tx.categoryId);
               return (
-                <div
+                <TransactionItem
                   key={tx.id}
-                  onClick={() => onSelectTransaction(tx)}
-                  className="flex items-center justify-between p-3 rounded-2xl bg-bg-secondary border border-border-color hover:shadow-sm transition-all cursor-pointer"
-                >
-                  <div className="flex items-center space-x-3 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-bg-tertiary flex items-center justify-center shadow-sm overflow-hidden shrink-0 border border-border-color">
-                      {tx.iconUrl ? (
-                        <img
-                          src={tx.iconUrl}
-                          alt={tx.title}
-                          className="w-7 h-7 object-contain"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <span className="material-symbols-outlined text-[20px] text-[#0058be]">
-                          {cat?.icon || 'receipt'}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="min-w-0">
-                      <p className="font-semibold text-[14px] leading-[20px] text-text-primary truncate">
-                        {tx.title}
-                      </p>
-                      <p className="text-[11px] text-text-secondary truncate">
-                        {tx.date} • {tx.paymentMethod}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="text-right shrink-0">
-                    <p
-                      className={`font-semibold text-[14px] leading-[20px] ${
-                        tx.amount < 0 ? 'text-[#ba1a1a]' : 'text-[#27AE60]'
-                      }`}
-                    >
-                      {formatAmount(tx.amount)}
-                    </p>
-                  </div>
-                </div>
+                  transaction={tx}
+                  category={cat}
+                  currency={currency}
+                  onClick={onSelectTransaction}
+                  subtitleMode="payment-date"
+                />
               );
             })
           )}

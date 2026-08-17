@@ -1,5 +1,18 @@
 import React from 'react';
 import { ViewTab } from '../types';
+import {
+  HomeIcon,
+  WalletIcon,
+  PlusIcon,
+  ChartPieIcon,
+  UserIcon,
+} from '@heroicons/react/24/solid';
+import {
+  HomeIcon as HomeOutline,
+  WalletIcon as WalletOutline,
+  ChartPieIcon as ChartPieOutline,
+  UserIcon as UserOutline,
+} from '@heroicons/react/24/outline';
 
 interface BottomNavProps {
   currentTab: ViewTab;
@@ -16,33 +29,31 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     {
       id: 'dashboard' as ViewTab,
       label: 'Home',
-      iconOutline: 'home',
-      iconFilled: 'home',
+      OutlineIcon: HomeOutline,
+      FilledIcon: HomeIcon,
     },
     {
       id: 'wallet' as ViewTab,
       label: 'Wallet',
-      iconOutline: 'account_balance_wallet',
-      iconFilled: 'account_balance_wallet',
+      OutlineIcon: WalletOutline,
+      FilledIcon: WalletIcon,
     },
     {
       id: 'add',
       label: 'Add',
-      iconOutline: 'add',
-      iconFilled: 'add',
       isSpecial: true,
     },
     {
       id: 'analysis' as ViewTab,
       label: 'Analytics',
-      iconOutline: 'pie_chart',
-      iconFilled: 'pie_chart',
+      OutlineIcon: ChartPieOutline,
+      FilledIcon: ChartPieIcon,
     },
     {
       id: 'profile' as ViewTab,
       label: 'Profile',
-      iconOutline: 'person',
-      iconFilled: 'person',
+      OutlineIcon: UserOutline,
+      FilledIcon: UserIcon,
     },
   ];
 
@@ -59,15 +70,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 className="relative group p-1.5 rounded-full active:scale-95 transition-all duration-200"
               >
                 <div className="w-9 h-9 rounded-full bg-gradient-to-b from-[#007aff] to-[#0051a8] text-white shadow-md shadow-[#007aff]/30 flex items-center justify-center border border-white/40 group-hover:scale-105 group-hover:shadow-[#007aff]/50 transition-all duration-300">
-                  <span className="material-symbols-outlined text-[22px] font-bold transition-transform duration-300 group-hover:rotate-90">
-                    add
-                  </span>
+                  <PlusIcon className="w-5 h-5 transition-transform duration-300 group-hover:rotate-90 stroke-[2.5]" />
                 </div>
               </button>
             );
           }
 
           const isActive = currentTab === tab.id;
+          const IconComp = isActive ? tab.FilledIcon : tab.OutlineIcon;
 
           return (
             <button
@@ -80,13 +90,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                   : 'text-text-primary/60 hover:text-text-primary hover:bg-bg-secondary/30'
               }`}
             >
-              <span
-                className={`material-symbols-outlined text-[22px] transition-all duration-200 ${
-                  isActive ? 'fill-1' : ''
-                }`}
-              >
-                {isActive ? tab.iconFilled : tab.iconOutline}
-              </span>
+              {IconComp && <IconComp className="w-5 h-5 transition-all duration-200" />}
             </button>
           );
         })}

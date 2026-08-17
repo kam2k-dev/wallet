@@ -1,6 +1,8 @@
 import React from 'react';
 import { Transaction, Category } from '../types';
-import { CurrencyCode, formatCurrency } from '../utils/currency';
+import { formatCurrency, CurrencyCode } from '../utils/currency';
+import { CategoryIcon } from './ui/CategoryIcon';
+import { XMarkIcon } from '@heroicons/react/24/solid';
 
 interface TransactionDetailsModalProps {
   transaction: Transaction | null;
@@ -30,33 +32,18 @@ export const TransactionDetailsModal: React.FC<TransactionDetailsModalProps> = (
           <h3 className="text-[18px] font-bold text-text-primary">Transaction Details</h3>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center text-text-secondary hover:bg-[#e1e8fd]"
+            className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center text-text-secondary hover:bg-[#e1e8fd] transition-colors"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <XMarkIcon className="w-5 h-5 text-text-secondary" />
           </button>
         </div>
 
         <div className="flex flex-col items-center justify-center py-2 space-y-2">
-          <div className="w-16 h-16 rounded-full bg-bg-tertiary flex items-center justify-center overflow-hidden border border-border-color shadow-sm">
-            {transaction.iconUrl ? (
-              <img
-                src={transaction.iconUrl}
-                alt={transaction.title}
-                className="w-12 h-12 object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            ) : (
-              <span className="material-symbols-outlined text-[28px] text-[#0058be]">
-                {category?.icon || 'receipt'}
-              </span>
-            )}
-          </div>
+          <CategoryIcon category={category} size="xl" className="shadow-md" />
           <h2 className="text-[20px] font-bold text-text-primary text-center">{transaction.title}</h2>
           <p
             className={`text-[24px] font-bold ${
-              transaction.amount < 0 ? 'text-[#ba1a1a]' : 'text-[#27AE60]'
+              transaction.amount < 0 ? 'text-brand-expense' : 'text-brand-income'
             }`}
           >
             {formatCurrency(transaction.amount, currency)}

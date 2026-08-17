@@ -3,6 +3,17 @@ import { LayoutGrid, List, ChevronUp, ChevronDown } from 'lucide-react';
 import { Category, Transaction, CategoryId } from '../types';
 import { CurrencyCode, formatCurrency } from '../utils/currency';
 import { EditCategoryModal } from './EditCategoryModal';
+import { CategoryIcon } from './ui/CategoryIcon';
+import { TransactionItem } from './ui/TransactionItem';
+import {
+  EyeIcon,
+  EyeSlashIcon,
+  PlusCircleIcon,
+  PencilSquareIcon,
+  CheckIcon,
+  ChevronRightIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline';
 
 interface DashboardViewProps {
   categories: Category[];
@@ -182,9 +193,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             className="text-text-secondary hover:text-text-primary p-1 -mr-1 transition-colors rounded-lg"
             title="Sembunyikan / Tampilkan Saldo"
           >
-            <span className="material-symbols-outlined text-[20px]">
-              {showBalance ? 'visibility' : 'visibility_off'}
-            </span>
+            {showBalance ? (
+              <EyeIcon className="w-5 h-5" />
+            ) : (
+              <EyeSlashIcon className="w-5 h-5" />
+            )}
           </button>
         </div>
 
@@ -256,9 +269,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <button
                 onClick={onAddCategory}
                 title="Add Category"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:text-[#007aff] hover:bg-bg-tertiary transition-colors"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:text-brand-primary hover:bg-bg-tertiary transition-colors"
               >
-                <span className="material-symbols-outlined text-[20px]">add_circle</span>
+                <PlusCircleIcon className="w-5 h-5" />
               </button>
             )}
             <button
@@ -270,9 +283,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary'
               }`}
             >
-              <span className="material-symbols-outlined text-[18px]">
-                {isEditMode ? 'check' : 'edit'}
-              </span>
+              {isEditMode ? (
+                <CheckIcon className="w-4 h-4" />
+              ) : (
+                <PencilSquareIcon className="w-4 h-4" />
+              )}
             </button>
           </div>
         </div>
@@ -304,12 +319,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   } ${isEditMode && isHidden ? 'opacity-40 grayscale' : ''}`}
                 >
                   <div className="flex items-center justify-between">
-                    <div
-                      className="w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs"
-                      style={{ backgroundColor: cat.bgHex }}
-                    >
-                      <span className="material-symbols-outlined text-[17px]">{cat.icon}</span>
-                    </div>
+                    <CategoryIcon category={cat} size="md" />
                     {isEditMode ? (
                       <div className="flex items-center gap-1">
                         <button
@@ -332,9 +342,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           onClick={(e) => toggleCategoryVisibility(cat.id, e)}
                           className="w-6 h-6 rounded-md bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors ml-0.5"
                         >
-                          <span className="material-symbols-outlined text-[14px]">
-                            {isHidden ? 'visibility_off' : 'visibility'}
-                          </span>
+                          {isHidden ? (
+                            <EyeSlashIcon className="w-3.5 h-3.5" />
+                          ) : (
+                            <EyeIcon className="w-3.5 h-3.5" />
+                          )}
                         </button>
                       </div>
                     ) : (
@@ -395,12 +407,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   } ${isEditMode && isHidden ? 'opacity-40 grayscale' : ''}`}
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs"
-                      style={{ backgroundColor: cat.bgHex }}
-                    >
-                      <span className="material-symbols-outlined text-[19px]">{cat.icon}</span>
-                    </div>
+                    <CategoryIcon category={cat} size="lg" />
 
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center justify-between">
@@ -449,9 +456,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           onClick={(e) => toggleCategoryVisibility(cat.id, e)}
                           className="w-6 h-6 rounded-md bg-bg-primary border border-border-color flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors"
                         >
-                          <span className="material-symbols-outlined text-[14px]">
-                            {isHidden ? 'visibility_off' : 'visibility'}
-                          </span>
+                          {isHidden ? (
+                            <EyeSlashIcon className="w-3.5 h-3.5" />
+                          ) : (
+                            <EyeIcon className="w-3.5 h-3.5" />
+                          )}
                         </button>
                       </div>
                     )}
@@ -470,10 +479,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <button
             onClick={onSeeAllTransactions}
             title="Lihat semua transaksi"
-            className="text-xs font-semibold text-[#007aff] hover:underline flex items-center gap-0.5"
+            className="text-xs font-semibold text-brand-primary hover:underline flex items-center gap-1"
           >
             <span>Semua</span>
-            <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+            <ChevronRightIcon className="w-3.5 h-3.5 stroke-[2.5]" />
           </button>
         </div>
 
@@ -496,42 +505,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   {items.map((tx) => {
                     const cat = categories.find((c) => c.id === tx.categoryId);
                     return (
-                      <div
+                      <TransactionItem
                         key={tx.id}
-                        onClick={() => onSelectTransaction(tx)}
-                        className="flex items-center gap-3.5 bg-bg-secondary p-3 rounded-2xl shadow-sm border border-border-color transition-all duration-200 cursor-pointer hover:shadow-md hover:border-[#007aff]/30 active:scale-[0.99]"
-                      >
-                        <div
-                          className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm"
-                          style={{ backgroundColor: cat?.bgHex || '#007aff' }}
-                        >
-                          <span className="material-symbols-outlined text-[19px]">
-                            {cat?.icon || 'receipt'}
-                          </span>
-                        </div>
-
-                        <div className="flex-grow min-w-0">
-                          <p className="text-[13px] font-bold text-text-primary truncate">{tx.title}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] font-semibold px-2 py-0.5 bg-bg-tertiary rounded-md text-text-secondary">
-                              {tx.paymentMethod}
-                            </span>
-                            <span className="text-[11px] text-text-secondary truncate">
-                              {cat?.name}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="text-right shrink-0">
-                          <p
-                            className={`text-[14px] font-black ${
-                              tx.amount < 0 ? 'text-[#ba1a1a]' : 'text-[#27AE60]'
-                            }`}
-                          >
-                            {formatAmount(tx.amount)}
-                          </p>
-                        </div>
-                      </div>
+                        transaction={tx}
+                        category={cat}
+                        currency={currency}
+                        onClick={onSelectTransaction}
+                        subtitleMode="payment-category"
+                      />
                     );
                   })}
                 </div>
@@ -555,7 +536,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               setContextMenuState({ ...contextMenuState, visible: false });
             }}
           >
-            <span className="material-symbols-outlined text-[16px]">edit</span>
+            <PencilSquareIcon className="w-4 h-4 text-text-secondary" />
             Edit
           </button>
           <button
@@ -567,7 +548,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               setContextMenuState({ ...contextMenuState, visible: false });
             }}
           >
-            <span className="material-symbols-outlined text-[16px]">delete</span>
+            <TrashIcon className="w-4 h-4 text-[#ba1a1a]" />
             Delete
           </button>
         </div>

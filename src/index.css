@@ -7,6 +7,9 @@
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
   --color-border-color: var(--border-color);
+  --color-brand-primary: #2170e4;
+  --color-brand-income: #27ae60;
+  --color-brand-expense: #ba1a1a;
 }
 
 @layer base {

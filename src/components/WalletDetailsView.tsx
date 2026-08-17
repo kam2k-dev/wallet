@@ -1,6 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { Category, Transaction, CategoryId, ChartPoint } from '../types';
 import { CurrencyCode, formatCurrency } from '../utils/currency';
+import { CategoryIcon } from './ui/CategoryIcon';
+import { TransactionItem } from './ui/TransactionItem';
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  MagnifyingGlassIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/solid';
 
 interface WalletDetailsViewProps {
   category: Category;
@@ -146,12 +156,14 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
           </p>
           <button
             onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-            className="text-[12px] text-[#0058be] font-medium hover:underline flex items-center gap-0.5"
+            className="text-[12px] text-brand-primary font-medium hover:underline flex items-center gap-1"
           >
             <span>{isCategoryDropdownOpen ? 'Hide List' : 'View All'}</span>
-            <span className="material-symbols-outlined text-[16px]">
-              {isCategoryDropdownOpen ? 'expand_less' : 'expand_more'}
-            </span>
+            {isCategoryDropdownOpen ? (
+              <ChevronUpIcon className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronDownIcon className="w-3.5 h-3.5" />
+            )}
           </button>
         </div>
 
@@ -169,10 +181,7 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
                     : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary border-border-color'
                 }`}
               >
-                <span
-                  className="w-2.5 h-2.5 rounded-full shrink-0"
-                  style={{ backgroundColor: cat.color }}
-                />
+                <CategoryIcon category={cat} size="sm" />
                 <span>{cat.name}</span>
               </button>
             );
@@ -193,22 +202,12 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
                   }}
                   className={`flex items-center gap-2.5 p-2.5 rounded-xl text-left transition-all ${
                     isSelected
-                      ? 'bg-[#2170e4]/10 border border-[#2170e4]/40 text-[#0058be] font-bold'
+                      ? 'bg-brand-primary/10 border border-brand-primary/40 text-brand-primary font-bold'
                       : 'hover:bg-bg-primary border border-transparent text-text-primary'
                   }`}
                 >
-                  <div
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0"
-                    style={{ backgroundColor: cat.color }}
-                  >
-                    <span className="material-symbols-outlined text-[16px]">{cat.icon}</span>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[12px] truncate">{cat.name}</p>
-                    <p className="text-[11px] text-text-secondary truncate">
-                      {formatCurrency(cat.amount, currency)}
-                    </p>
-                  </div>
+                  <CategoryIcon category={cat} size="md" />
+                  <span className="truncate text-[13px]">{cat.name}</span>
                 </button>
               );
             })}
@@ -216,17 +215,10 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
         )}
       </section>
 
-      {/* Header Card */}
-      <section className="bg-bg-secondary p-4 rounded-3xl border border-border-color shadow-sm">
-        <div className="flex items-center gap-4">
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-sm shrink-0"
-            style={{ backgroundColor: category.color }}
-          >
-            <span className="material-symbols-outlined fill-1 text-[28px]">
-              {category.icon}
-            </span>
-          </div>
+      {/* Hero Category Overview Card */}
+      <section className="bg-bg-secondary p-5 rounded-3xl border border-border-color shadow-xs">
+        <div className="flex items-center gap-3.5">
+          <CategoryIcon category={category} size="xl" />
           <div className="min-w-0">
             <p className="text-text-secondary text-[13px] font-medium truncate">
               {category.name}
@@ -256,16 +248,16 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
             <button
               onClick={() => setMonthOffset((prev) => prev + 1)}
               aria-label="Previous Month"
-              className="w-10 h-10 rounded-full border border-[#c8c5cb] flex items-center justify-center hover:bg-[#e9edff] transition-colors"
+              className="w-10 h-10 rounded-full border border-border-color flex items-center justify-center hover:bg-bg-tertiary transition-colors"
             >
-              <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+              <ChevronLeftIcon className="w-5 h-5 text-text-primary" />
             </button>
             <button
               onClick={() => setMonthOffset((prev) => Math.max(0, prev - 1))}
               aria-label="Next Month"
-              className="w-10 h-10 rounded-full border border-[#c8c5cb] flex items-center justify-center hover:bg-[#e9edff] transition-colors"
+              className="w-10 h-10 rounded-full border border-border-color flex items-center justify-center hover:bg-bg-tertiary transition-colors"
             >
-              <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+              <ChevronRightIcon className="w-5 h-5 text-text-primary" />
             </button>
           </div>
         </div>
@@ -349,22 +341,22 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
 
       {/* Search Section */}
       <section className="relative">
-        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#77767b] text-[20px]">
-          search
-        </span>
+        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[#77767b]">
+          <MagnifyingGlassIcon className="w-4 h-4 text-text-secondary" />
+        </div>
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search for any transaction"
-          className="w-full pl-12 pr-4 py-3.5 bg-bg-tertiary border-none rounded-full text-[14px] focus:ring-2 focus:ring-[#0058be]/20 placeholder:text-[#77767b] outline-none"
+          className="w-full pl-11 pr-4 py-3.5 bg-bg-tertiary border-none rounded-full text-[14px] focus:ring-2 focus:ring-brand-primary/20 placeholder:text-[#77767b] outline-none text-text-primary"
         />
         {searchQuery && (
           <button
             onClick={() => setSearchQuery('')}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-[#77767b]"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-[#77767b] hover:text-text-primary"
           >
-            <span className="material-symbols-outlined text-[18px]">cancel</span>
+            <XCircleIcon className="w-4 h-4" />
           </button>
         )}
       </section>
@@ -377,48 +369,21 @@ export const WalletDetailsView: React.FC<WalletDetailsViewProps> = ({
           </h3>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {filteredTransactions.length === 0 ? (
-            <div className="text-center py-8 text-[#77767b] text-[14px]">
+            <div className="text-center py-8 text-text-secondary text-[13px] bg-bg-secondary rounded-2xl border border-border-color">
               No transactions found in {category.name}
             </div>
           ) : (
             filteredTransactions.map((tx) => (
-              <div
+              <TransactionItem
                 key={tx.id}
-                onClick={() => onSelectTransaction(tx)}
-                className="flex items-center justify-between p-4 bg-bg-secondary rounded-2xl border border-border-color hover:shadow-md transition-shadow cursor-pointer"
-              >
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className="w-12 h-12 rounded-xl bg-[#e9edff] flex items-center justify-center overflow-hidden shrink-0">
-                    {tx.iconUrl ? (
-                      <img
-                        src={tx.iconUrl}
-                        alt={tx.title}
-                        className="w-10 h-10 object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <span className="material-symbols-outlined text-[#0058be]">
-                        {category.icon}
-                      </span>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-[16px] text-text-primary truncate">
-                      {tx.title}
-                    </p>
-                    <p className="text-[12px] text-[#77767b] truncate">
-                      {tx.date}
-                    </p>
-                  </div>
-                </div>
-                <p className="font-semibold text-[16px] text-text-primary shrink-0">
-                  {formatCurrency(tx.amount, currency)}
-                </p>
-              </div>
+                transaction={tx}
+                category={category}
+                currency={currency}
+                onClick={onSelectTransaction}
+                subtitleMode="payment-date"
+              />
             ))
           )}
         </div>

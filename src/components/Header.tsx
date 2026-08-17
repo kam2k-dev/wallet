@@ -1,5 +1,6 @@
 import React from 'react';
 import { ViewTab, User } from '../types';
+import { ArrowLeftIcon } from '@heroicons/react/24/solid';
 
 interface HeaderProps {
   currentTab: ViewTab;
@@ -33,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
           aria-label="Back"
           className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors active:scale-95"
         >
-          <span className="material-symbols-outlined text-text-primary">arrow_back</span>
+          <ArrowLeftIcon className="w-5 h-5 text-text-primary" />
         </button>
         <h1 className="font-semibold text-[20px] leading-[28px] text-text-primary">Spend analysis</h1>
         <div className="w-10" /> {/* Spacer for alignment */}
@@ -49,7 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
           aria-label="Back"
           className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors active:scale-95"
         >
-          <span className="material-symbols-outlined text-text-primary">arrow_back</span>
+          <ArrowLeftIcon className="w-5 h-5 text-text-primary" />
         </button>
         <h1 className="font-semibold text-[20px] leading-[28px] text-text-primary tracking-tight">
           Wallet details
@@ -67,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({
           aria-label="Back"
           className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors active:scale-95"
         >
-          <span className="material-symbols-outlined text-text-primary">arrow_back</span>
+          <ArrowLeftIcon className="w-5 h-5 text-text-primary" />
         </button>
         <h1 className="font-semibold text-[20px] leading-[28px] text-text-primary">Profile & Account</h1>
         <div className="w-10" /> {/* Spacer for alignment */}

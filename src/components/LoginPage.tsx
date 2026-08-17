@@ -113,19 +113,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 text="signin_with"
               />
 
-              {import.meta.env.DEV && (
-                <div className="w-full mt-2 p-3 border border-amber-500/30 rounded-xl bg-amber-500/10 text-center">
-                  <p className="text-[11px] text-amber-500 font-mono font-semibold mb-2">🛠️ DEV ONLY</p>
-                  <button
-                    onClick={handleDevQuickLogin}
-                    className="flex items-center justify-center gap-1.5 w-full py-2 px-4 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-black transition-all shadow-sm"
-                    title="Quick login for development without Google OAuth"
-                  >
-                    <Zap size={14} className="fill-black text-black" />
-                    <span>⚡ Quick Dev Login (Bypass)</span>
-                  </button>
-                </div>
-              )}
+              <div className="w-full mt-2 p-3 border border-amber-500/30 rounded-xl bg-amber-500/10 text-center">
+                <button
+                  onClick={handleDevQuickLogin}
+                  className="flex items-center justify-center gap-1.5 w-full py-2 px-4 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-black transition-all shadow-sm"
+                  title="Quick login bypass"
+                >
+                  <Zap size={14} className="fill-black text-black" />
+                  <span>⚡ Masuk Cepat (Bypass Login)</span>
+                </button>
+              </div>
             </>
           )}
         </div>

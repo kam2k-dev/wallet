@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Category } from '../types';
 import { CurrencyCode, getCurrency } from '../utils/currency';
+import { XMarkIcon, CheckIcon } from '@heroicons/react/24/solid';
+import { CategoryIcon, CATEGORY_ICONS_PRESET } from './ui/CategoryIcon';
 
 interface AddCategoryModalProps {
   isOpen: boolean;
@@ -9,34 +11,15 @@ interface AddCategoryModalProps {
   onAddCategory: (category: Category) => void;
 }
 
-const AVAILABLE_ICONS = [
-  'shopping_bag',
-  'directions_car',
-  'event',
-  'home',
-  'restaurant',
-  'flight',
-  'fitness_center',
-  'medical_services',
-  'school',
-  'pets',
-  'sports_esports',
-  'local_cafe',
-  'payments',
-  'work',
-  'trending_up',
-  'savings',
-];
-
 const AVAILABLE_COLORS = [
-  { color: '#9466ff', bgHex: '#9c27b0' },
-  { color: '#2170e4', bgHex: '#2196f3' },
-  { color: '#27AE60', bgHex: '#4caf50' },
-  { color: '#F39C12', bgHex: '#ff9800' },
-  { color: '#E74C3C', bgHex: '#f44336' },
-  { color: '#00bcd4', bgHex: '#0097a7' },
-  { color: '#e91e63', bgHex: '#c2185b' },
-  { color: '#795548', bgHex: '#5d4037' },
+  { color: '#9466ff', bgHex: '#9c27b0', label: 'Purple' },
+  { color: '#2170e4', bgHex: '#2196f3', label: 'Blue' },
+  { color: '#27AE60', bgHex: '#4caf50', label: 'Green' },
+  { color: '#F39C12', bgHex: '#ff9800', label: 'Orange' },
+  { color: '#E74C3C', bgHex: '#f44336', label: 'Red' },
+  { color: '#00bcd4', bgHex: '#0097a7', label: 'Teal' },
+  { color: '#e91e63', bgHex: '#c2185b', label: 'Pink' },
+  { color: '#795548', bgHex: '#5d4037', label: 'Brown' },
 ];
 
 export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
@@ -46,7 +29,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
   onAddCategory,
 }) => {
   const [name, setName] = useState('');
-  const [selectedIcon, setSelectedIcon] = useState('shopping_bag');
+  const [selectedIcon, setSelectedIcon] = useState('shopping-bag');
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [budget, setBudget] = useState('');
   const [type, setType] = useState<'expense' | 'income'>('expense');
@@ -86,9 +69,9 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
           <h2 className="text-[20px] font-bold text-text-primary">New Category</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center text-text-secondary hover:bg-[#e1e8fd]"
+            className="w-8 h-8 rounded-full bg-bg-tertiary flex items-center justify-center text-text-secondary hover:bg-[#e1e8fd] transition-colors"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <XMarkIcon className="w-5 h-5 text-text-secondary" />
           </button>
         </div>
 
@@ -149,21 +132,35 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
 
           <div>
             <label className="block text-[12px] font-medium text-text-secondary mb-1">
-              Select Icon
+              Select Icon ({CATEGORY_ICONS_PRESET.length} pilihan Scarlab & Heroicons)
             </label>
-            <div className="grid grid-cols-4 gap-2 max-h-32 overflow-y-auto p-1">
-              {AVAILABLE_ICONS.map((icon) => (
+            <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto p-1.5 bg-bg-tertiary/50 rounded-2xl border border-border-color custom-scrollbar">
+              {CATEGORY_ICONS_PRESET.map((iconItem) => (
                 <button
-                  key={icon}
+                  key={iconItem.id}
                   type="button"
-                  onClick={() => setSelectedIcon(icon)}
-                  className={`p-2.5 rounded-2xl border flex items-center justify-center transition-all ${
-                    selectedIcon === icon
-                      ? 'border-[#2170e4] bg-[#2170e4]/10 text-[#0058be]'
-                      : 'border-border-color bg-bg-tertiary text-text-secondary hover:text-text-primary'
+                  onClick={() => setSelectedIcon(iconItem.id)}
+                  title={iconItem.label}
+                  className={`p-2 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all ${
+                    selectedIcon === iconItem.id
+                      ? 'border-brand-primary bg-brand-primary/15 text-brand-primary shadow-xs ring-1 ring-brand-primary'
+                      : 'border-border-color bg-bg-secondary text-text-secondary hover:text-text-primary hover:bg-bg-tertiary'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[22px]">{icon}</span>
+                  <CategoryIcon
+                    category={{
+                      id: 'preview',
+                      name: '',
+                      amount: 0,
+                      color: AVAILABLE_COLORS[selectedColorIdx].color,
+                      bgHex: AVAILABLE_COLORS[selectedColorIdx].bgHex,
+                      icon: iconItem.id,
+                    }}
+                    size="sm"
+                  />
+                  <span className="text-[9px] font-medium truncate w-full text-center">
+                    {iconItem.label}
+                  </span>
                 </button>
               ))}
             </div>
@@ -180,12 +177,12 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
                   type="button"
                   onClick={() => setSelectedColorIdx(idx)}
                   className={`w-8 h-8 rounded-full shrink-0 transition-all flex items-center justify-center ${
-                    selectedColorIdx === idx ? 'ring-2 ring-offset-2 ring-[#0058be]' : ''
+                    selectedColorIdx === idx ? 'ring-2 ring-offset-2 ring-brand-primary' : ''
                   }`}
                   style={{ backgroundColor: c.color }}
                 >
                   {selectedColorIdx === idx && (
-                    <span className="material-symbols-outlined text-white text-[16px]">check</span>
+                    <CheckIcon className="w-4 h-4 text-white" />
                   )}
                 </button>
               ))}
@@ -194,7 +191,7 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({
 
           <button
             type="submit"
-            className="w-full py-3.5 bg-[#000000] dark:bg-[#2170e4] text-white font-semibold rounded-full hover:opacity-90 transition-all active:scale-95 shadow-md mt-2"
+            className="w-full py-3.5 bg-brand-primary text-white font-semibold rounded-full hover:opacity-90 transition-all active:scale-95 shadow-md mt-2"
           >
             Create Category
           </button>
