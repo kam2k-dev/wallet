@@ -4,15 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       domain_name:
-        description: 'Domain name (e.g., app.yourdomain.com)'
+        description: 'Domain name'
         required: true
+        default: 'testapp.kamodev.my.id'
       target_port:
         description: 'Target Docker Port (e.g., 5000 for Prod, 5001 for Dev)'
         required: true
-        default: '5000'
+        default: '5001'
       email:
         description: 'Email for Let''s Encrypt SSL registration'
         required: true
+        default: 'admin@kamodev.my.id'
 
 jobs:
   setup-nginx-ssl:
